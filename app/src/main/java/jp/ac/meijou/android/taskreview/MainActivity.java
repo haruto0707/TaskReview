@@ -5,6 +5,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Process;
 import android.os.Handler;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         initToDoList(binding.toDoView);
+        initMenu();
     }
 
     /**
@@ -94,9 +96,14 @@ public class MainActivity extends AppCompatActivity {
             });
         });
 
-        //
-
     }
+    private void initMenu() {
+        binding.menu.registerButton.setOnClickListener(v -> {
+            var intent = new Intent(this, RegisterActivity.class);
+            startActivity(intent);
+        });
+    }
+
 
     /**
      * 終了時はスレッドを終了させる。
