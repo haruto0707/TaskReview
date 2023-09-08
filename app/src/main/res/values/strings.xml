@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">TaskReview</string>
+    <string name="title_todo_content">やること</string>
+    <string name="title_subject">科目</string>
+    <string name="title_priority">優先度</string>
+    <string name="title_estimated_time">推定時間</string>
+    <string name="title_register">登録</string>
 </resources>
