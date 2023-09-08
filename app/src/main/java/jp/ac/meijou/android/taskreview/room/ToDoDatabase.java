@@ -9,7 +9,9 @@ public class ToDoDatabase {
     public static AppDatabase getInstance(Context context) {
         if (db == null) {
             db = Room.databaseBuilder(context.getApplicationContext(),
-                    AppDatabase.class, "todo_list-db").build();
+                    AppDatabase.class, "todo_list-db")
+                    .fallbackToDestructiveMigration()
+                    .build();
         }
         return db;
     }

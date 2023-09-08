@@ -10,6 +10,8 @@ import android.os.Process;
 import android.os.Handler;
 import android.os.HandlerThread;
 
+import java.util.stream.Collectors;
+
 import jp.ac.meijou.android.taskreview.databinding.ActivityMainBinding;
 import jp.ac.meijou.android.taskreview.room.IToDoDao;
 import jp.ac.meijou.android.taskreview.room.ToDo;
@@ -26,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
     private Handler asyncHandler;
     // DBアクセス用のDAO
     private IToDoDao dao;
+
+    private ToDoListAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,38 +50,52 @@ public class MainActivity extends AppCompatActivity {
      * @param recyclerView ToDoリストを表示するRecyclerView
      */
     private void initToDoList(RecyclerView recyclerView) {
-
+        // DBアクセス用のスレッドを初期化、開始する
         handlerThread = new HandlerThread("db-thread", Process.THREAD_PRIORITY_DEFAULT);
         handlerThread.start();
         asyncHandler = new Handler(handlerThread.getLooper());
 
+        // DBアクセス用のDAOを初期化する、データベース内のデータを取得
         var db = ToDoDatabase.getInstance(this);
         dao = db.toDoDao();
 
+        // ToDoListを管理するクラスを初期化する
         var callback = new ToDoDiffCallback();
-        var adapter = new ToDoListAdapter(callback);
+        adapter = new ToDoListAdapter(callback, dao);
 
+        // DBアクセス用スレッド内でデータベースからToDoリストを取得する
         asyncHandler.post(() -> {
             var list = dao.getAll();
             adapter.submitList(list);
         });
+
+        // RecyclerViewの初期化、設定
         recyclerView.setAdapter(adapter);
         var layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         var itemDecoration = new DividerItemDecoration(this, layoutManager.getOrientation());
         recyclerView.addItemDecoration(itemDecoration);
+
+        // 生成ボタンの初期化、設定
         binding.button.setOnClickListener(v -> {
-            var toDo = new ToDo("タイトル", "科目", "推定時間", "期限", ToDo.Priority.LOW, "詳細", "メモ");
+            var toDo = new ToDo("タイトル", "科目", "推定時間", "期限", ToDo.Priority.LOW, "詳細", "メモ", true);
             asyncHandler.post(() -> {
                 dao.insertAll(toDo);
-                var list = dao.getAll();
+                var list = dao.getAll()
+                        .stream()
+                        .filter(t -> t.visible)
+                        .collect(Collectors.toList());
                 adapter.submitList(list);
             });
         });
+        // 削除ボタンの初期化、設定
         binding.button2.setOnClickListener(v -> {
             asyncHandler.post(() -> {
                 dao.deleteAll();
-                var list = dao.getAll();
+                var list = dao.getAll()
+                        .stream()
+                        .filter(t -> t.visible)
+                        .collect(Collectors.toList());
                 adapter.submitList(list);
             });
         });
