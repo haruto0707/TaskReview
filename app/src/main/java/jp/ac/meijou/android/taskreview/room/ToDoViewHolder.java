@@ -63,7 +63,6 @@ public class ToDoViewHolder extends ViewHolder {
         binding.priorityView.setText(toDo.getPriorityString());
         binding.estimatedTimeView.setText(toDo.estimatedTime);
         binding.getRoot().setOnClickListener(v -> {
-            binding.getRoot().setVisibility(View.GONE);
             asyncHandler.post(() -> {
                 toDo.visible = false;
                 dao.update(toDo);
