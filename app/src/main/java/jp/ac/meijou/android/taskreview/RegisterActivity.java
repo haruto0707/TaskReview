@@ -40,7 +40,8 @@ public class RegisterActivity extends AppCompatActivity {
             var content = binding.toDoEditText.getText().toString();
             var subject = binding.subjectEditText.getText().toString();
             var estimatedTime = binding.editTextNumber.getText().toString();
-            var toDo = new ToDo(content, subject, estimatedTime, "2021-07-01", ToDo.Priority.LOW, "detail", "note", true);
+            var priority = getPriority();
+            var toDo = new ToDo(content, subject, estimatedTime, "2021-07-01", priority, "detail", "note", true);
             // DBアクセス用スレッド内でデータベースからToDoリストを取得する
             asyncHandler.post(() -> {
                 dao.insertAll(toDo);
@@ -52,5 +53,16 @@ public class RegisterActivity extends AppCompatActivity {
             setResult(RESULT_OK, intent);
             finish();
         });
+    }
+
+    private ToDo.Priority getPriority() {
+        if(binding.radioLow.isChecked()) {
+            return ToDo.Priority.LOW;
+        } else if(binding.radioMiddle.isChecked()) {
+            return ToDo.Priority.MEDIUM;
+        } else if(binding.radioHigh.isChecked()) {
+            return ToDo.Priority.HIGH;
+        }
+        return ToDo.Priority.LOW;
     }
 }

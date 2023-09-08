@@ -80,15 +80,6 @@ public class MainActivity extends AppCompatActivity {
         var itemDecoration = new DividerItemDecoration(this, layoutManager.getOrientation());
         recyclerView.addItemDecoration(itemDecoration);
 
-        // 生成ボタンの初期化、設定
-        binding.button.setOnClickListener(v -> {
-            var toDo = new ToDo("タイトル", "科目", "推定時間", "期限", ToDo.Priority.LOW, "詳細", "メモ", true);
-            asyncHandler.post(() -> {
-                dao.insertAll(toDo);
-                var list = dao.getVisibilityAll(true);
-                adapter.submitList(list);
-            });
-        });
         // 削除ボタンの初期化、設定
         binding.button2.setOnClickListener(v -> {
             asyncHandler.post(() -> {
