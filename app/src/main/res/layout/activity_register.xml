@@ -77,8 +77,8 @@
         android:ems="10"
         android:inputType="number"
         app:layout_constraintBottom_toBottomOf="@+id/estimatedTimeTitleView"
-        app:layout_constraintTop_toTopOf="@+id/estimatedTimeTitleView"
-        tools:layout_editor_absoluteX="161dp" />
+        app:layout_constraintEnd_toEndOf="@+id/subjectEditText"
+        app:layout_constraintTop_toTopOf="@+id/estimatedTimeTitleView" />
 
     <Button
         android:id="@+id/button3"
