@@ -1,5 +1,7 @@
 package jp.ac.meijou.android.taskreview.room;
 
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -9,10 +11,15 @@ import androidx.recyclerview.widget.ListAdapter;
 
 import jp.ac.meijou.android.taskreview.databinding.ViewTodoBinding;
 
-
+/**
+ * RecyclerViewにToDoリストの要素を表示するためのクラス
+ * @see androidx.recyclerview.widget.ListAdapter
+ */
 public class ToDoListAdapter extends ListAdapter<ToDo, ToDoViewHolder> {
-    public ToDoListAdapter(@NonNull ItemCallback<ToDo> diffCallback) {
+    private IToDoDao dao;
+    public ToDoListAdapter(@NonNull ItemCallback<ToDo> diffCallback, IToDoDao dao) {
         super(diffCallback);
+        this.dao = dao;
     }
 
     @NonNull
@@ -20,7 +27,7 @@ public class ToDoListAdapter extends ListAdapter<ToDo, ToDoViewHolder> {
     public ToDoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         var inflater = LayoutInflater.from(parent.getContext());
         var binding = ViewTodoBinding.inflate(inflater, parent, false);
-        return new ToDoViewHolder(binding);
+        return new ToDoViewHolder(binding, dao, this);
     }
 
     @Override

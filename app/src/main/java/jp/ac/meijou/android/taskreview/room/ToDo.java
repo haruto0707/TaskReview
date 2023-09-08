@@ -7,24 +7,6 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "todo_list")
 public class ToDo {
     public static final String MESSAGE_ERROR = "ERROR";
-    public ToDo() {
-        this.title = MESSAGE_ERROR;
-        this.subject = MESSAGE_ERROR;
-        this.estimatedTime = MESSAGE_ERROR;
-        this.deadline = MESSAGE_ERROR;
-        this.priority = -1;
-        this.detail = MESSAGE_ERROR;
-        this.note = MESSAGE_ERROR;
-    }
-    public ToDo(String title, String subject, String estimatedTime, String deadline, Priority priority, String detail, String note) {
-        this.title = title;
-        this.subject = subject;
-        this.estimatedTime = estimatedTime;
-        this.deadline = deadline;
-        this.priority = toInt(priority);
-        this.detail = detail;
-        this.note = note;
-    }
     @PrimaryKey(autoGenerate = true)
     public int id;
     @ColumnInfo(name = "title")
@@ -41,6 +23,29 @@ public class ToDo {
     public String detail;
     @ColumnInfo(name = "note")
     public String note;
+    @ColumnInfo(name = "visible")
+    public boolean visible;
+
+    public ToDo() {
+        this.title = MESSAGE_ERROR;
+        this.subject = MESSAGE_ERROR;
+        this.estimatedTime = MESSAGE_ERROR;
+        this.deadline = MESSAGE_ERROR;
+        this.priority = -1;
+        this.detail = MESSAGE_ERROR;
+        this.note = MESSAGE_ERROR;
+        this.visible = false;
+    }
+    public ToDo(String title, String subject, String estimatedTime, String deadline, Priority priority, String detail, String note, boolean visible) {
+        this.title = title;
+        this.subject = subject;
+        this.estimatedTime = estimatedTime;
+        this.deadline = deadline;
+        this.priority = toInt(priority);
+        this.detail = detail;
+        this.note = note;
+        this.visible = visible;
+    }
 
     public enum Priority {
         LOW,
