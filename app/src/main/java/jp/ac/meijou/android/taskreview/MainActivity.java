@@ -93,6 +93,9 @@ public class MainActivity extends AppCompatActivity {
                 adapter.submitList(list);
             });
         });
+
+        //
+
     }
 
     /**
