@@ -13,13 +13,13 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="30dp"
         android:text="@string/title_todo_content"
-        android:textSize="24sp"
+        android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/toDoEditText"
-        android:layout_width="wrap_content"
+        android:layout_width="230dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp"
         android:ems="10"
@@ -31,7 +31,7 @@
 
     <EditText
         android:id="@+id/subjectEditText"
-        android:layout_width="wrap_content"
+        android:layout_width="230dp"
         android:layout_height="wrap_content"
         android:ems="10"
         android:inputType="text"
@@ -42,7 +42,7 @@
 
     <EditText
         android:id="@+id/priorityEditText"
-        android:layout_width="wrap_content"
+        android:layout_width="230dp"
         android:layout_height="wrap_content"
         android:ems="10"
         android:inputType="text"
@@ -57,7 +57,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:text="@string/title_subject"
-        android:textSize="24sp"
+        android:textSize="20sp"
         app:layout_constraintStart_toStartOf="@+id/contentTitleView"
         app:layout_constraintTop_toBottomOf="@+id/contentTitleView" />
 
@@ -67,7 +67,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:text="@string/title_priority"
-        android:textSize="24sp"
+        android:textSize="20sp"
         app:layout_constraintStart_toStartOf="@+id/contentTitleView"
         app:layout_constraintTop_toBottomOf="@+id/subjectTitleView" />
 
@@ -77,7 +77,28 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:text="@string/title_estimated_time"
-        android:textSize="24sp"
+        android:textSize="20sp"
         app:layout_constraintStart_toStartOf="@+id/contentTitleView"
         app:layout_constraintTop_toBottomOf="@+id/priorityTitleView" />
+
+    <EditText
+        android:id="@+id/editTextNumber"
+        android:layout_width="230dp"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="number"
+        app:layout_constraintBottom_toBottomOf="@+id/estimatedTimeTitleView"
+        app:layout_constraintEnd_toEndOf="@+id/priorityEditText"
+        app:layout_constraintTop_toTopOf="@+id/estimatedTimeTitleView" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100dp"
+        android:text="@string/title_register"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/estimatedTimeTitleView" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
