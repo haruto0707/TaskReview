@@ -2,6 +2,7 @@ package jp.ac.meijou.android.taskreview;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -44,6 +45,10 @@ public class RegisterActivity extends AppCompatActivity {
                 dao.insertAll(toDo);
                 handlerThread.quit();
             });
+        });
+        binding.menu.todoButton.setOnClickListener(v -> {
+            var intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
         });
     }
 }
