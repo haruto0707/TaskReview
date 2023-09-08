@@ -74,4 +74,8 @@ public class ToDoViewHolder extends ViewHolder {
             });
         });
     }
+
+    public void finishThread() {
+        handlerThread.quit();
+    }
 }
