@@ -44,8 +44,8 @@ public class RegisterActivity extends AppCompatActivity {
             // DBアクセス用スレッド内でデータベースからToDoリストを取得する
             asyncHandler.post(() -> {
                 dao.insertAll(toDo);
+                handlerThread.quit();
             });
-            handlerThread.quit();
         });
         binding.menu.todoButton.setOnClickListener(v -> {
             var intent = new Intent();

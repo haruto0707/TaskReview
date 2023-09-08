@@ -1,7 +1,6 @@
 package jp.ac.meijou.android.taskreview;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -33,10 +32,7 @@ public class MainActivity extends AppCompatActivity {
     // DBアクセス用のDAO
     private IToDoDao dao;
     private ToDoListAdapter adapter;
-    private final ActivityResultLauncher<Intent> registerLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-    });
+    private ActivityResultLauncher<Intent> registerLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,12 +97,19 @@ public class MainActivity extends AppCompatActivity {
                 adapter.submitList(list);
             });
         });
-
+        registerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    asyncHandler.post(() -> {
+                        var list = dao.getVisibilityAll(true);
+                        adapter.submitList(list);
+                    });
+                });
     }
     private void initMenu() {
         binding.menu.registerButton.setOnClickListener(v -> {
             var intent = new Intent(this, RegisterActivity.class);
-            startActivity(intent);
+            registerLauncher.launch(intent);
         });
     }
 
