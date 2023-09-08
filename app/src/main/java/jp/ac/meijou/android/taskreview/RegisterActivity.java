@@ -21,6 +21,7 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityRegisterBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        initRegisterButton();
     }
 
     private void initRegisterButton() {
@@ -47,8 +48,7 @@ public class RegisterActivity extends AppCompatActivity {
             });
         });
         binding.menu.todoButton.setOnClickListener(v -> {
-            var intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
+            finish();
         });
     }
 }

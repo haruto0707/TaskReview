@@ -1,5 +1,8 @@
 package jp.ac.meijou.android.taskreview;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -11,6 +14,7 @@ import android.os.Process;
 import android.os.Handler;
 import android.os.HandlerThread;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import jp.ac.meijou.android.taskreview.databinding.ActivityMainBinding;
@@ -22,15 +26,17 @@ import jp.ac.meijou.android.taskreview.room.ToDoListAdapter;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
-
     // DBアクセス用のスレッド
     private HandlerThread handlerThread;
     // DBアクセス用のスレッドのハンドラ
     private Handler asyncHandler;
     // DBアクセス用のDAO
     private IToDoDao dao;
-
     private ToDoListAdapter adapter;
+    private final ActivityResultLauncher<Intent> registerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
