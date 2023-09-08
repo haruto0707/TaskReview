@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
 import java.util.stream.Collectors;
 
-import jp.ac.meijou.android.taskreview.MainActivity;
 import jp.ac.meijou.android.taskreview.databinding.ViewTodoBinding;
 
 /**
@@ -73,5 +72,10 @@ public class ToDoViewHolder extends ViewHolder {
                 adapter.submitList(list);
             });
         });
+
+    }
+
+    public void finishThread() {
+        handlerThread.quit();
     }
 }

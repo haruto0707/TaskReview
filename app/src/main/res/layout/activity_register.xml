@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".RegisterActivity">
+
+    <TextView
+        android:id="@+id/contentTitleView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="30dp"
+        android:text="@string/title_todo_content"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/toDoEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        android:ems="10"
+        android:inputType="text"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/contentTitleView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/contentTitleView" />
+
+    <EditText
+        android:id="@+id/subjectEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="text"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/subjectTitleView"
+        app:layout_constraintEnd_toEndOf="@+id/toDoEditText"
+        app:layout_constraintTop_toTopOf="@+id/subjectTitleView" />
+
+    <EditText
+        android:id="@+id/priorityEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="text"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/priorityTitleView"
+        app:layout_constraintEnd_toEndOf="@+id/toDoEditText"
+        app:layout_constraintTop_toTopOf="@+id/priorityTitleView" />
+
+    <TextView
+        android:id="@+id/subjectTitleView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="@string/title_subject"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="@+id/contentTitleView"
+        app:layout_constraintTop_toBottomOf="@+id/contentTitleView" />
+
+    <TextView
+        android:id="@+id/priorityTitleView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="@string/title_priority"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="@+id/contentTitleView"
+        app:layout_constraintTop_toBottomOf="@+id/subjectTitleView" />
+
+    <TextView
+        android:id="@+id/estimatedTimeTitleView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="@string/title_estimated_time"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="@+id/contentTitleView"
+        app:layout_constraintTop_toBottomOf="@+id/priorityTitleView" />
+</androidx.constraintlayout.widget.ConstraintLayout>

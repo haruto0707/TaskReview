@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
         // DBアクセス用スレッド内でデータベースからToDoリストを取得する
         asyncHandler.post(() -> {
-            var list = dao.getAll();
+            var list = dao.getVisibilityAll(true);
             adapter.submitList(list);
         });
 
@@ -81,10 +81,7 @@ public class MainActivity extends AppCompatActivity {
             var toDo = new ToDo("タイトル", "科目", "推定時間", "期限", ToDo.Priority.LOW, "詳細", "メモ", true);
             asyncHandler.post(() -> {
                 dao.insertAll(toDo);
-                var list = dao.getAll()
-                        .stream()
-                        .filter(t -> t.visible)
-                        .collect(Collectors.toList());
+                var list = dao.getVisibilityAll(true);
                 adapter.submitList(list);
             });
         });
@@ -92,10 +89,7 @@ public class MainActivity extends AppCompatActivity {
         binding.button2.setOnClickListener(v -> {
             asyncHandler.post(() -> {
                 dao.deleteAll();
-                var list = dao.getAll()
-                        .stream()
-                        .filter(t -> t.visible)
-                        .collect(Collectors.toList());
+                var list = dao.getAll();
                 adapter.submitList(list);
             });
         });
@@ -108,5 +102,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         handlerThread.quit();
+        adapter.finishThread();
     }
 }

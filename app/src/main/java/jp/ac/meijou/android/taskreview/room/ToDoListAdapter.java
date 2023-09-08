@@ -9,6 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil.ItemCallback;
 import androidx.recyclerview.widget.ListAdapter;
 
+import java.util.Optional;
+
 import jp.ac.meijou.android.taskreview.databinding.ViewTodoBinding;
 
 /**
@@ -17,9 +19,15 @@ import jp.ac.meijou.android.taskreview.databinding.ViewTodoBinding;
  */
 public class ToDoListAdapter extends ListAdapter<ToDo, ToDoViewHolder> {
     private IToDoDao dao;
+    private ToDoViewHolder viewHolder;
     public ToDoListAdapter(@NonNull ItemCallback<ToDo> diffCallback, IToDoDao dao) {
         super(diffCallback);
         this.dao = dao;
+    }
+
+    public void finishThread() {
+        Optional.ofNullable(viewHolder)
+                .ifPresent(ToDoViewHolder::finishThread);
     }
 
     @NonNull
@@ -27,7 +35,8 @@ public class ToDoListAdapter extends ListAdapter<ToDo, ToDoViewHolder> {
     public ToDoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         var inflater = LayoutInflater.from(parent.getContext());
         var binding = ViewTodoBinding.inflate(inflater, parent, false);
-        return new ToDoViewHolder(binding, dao, this);
+        viewHolder = new ToDoViewHolder(binding, dao, this);
+        return viewHolder;
     }
 
     @Override
