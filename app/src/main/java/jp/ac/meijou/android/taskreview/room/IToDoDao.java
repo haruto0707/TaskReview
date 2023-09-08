@@ -13,6 +13,9 @@ public interface IToDoDao {
     @Query("SELECT * FROM todo_list")
     List<ToDo> getAll();
 
+    @Query("SELECT * FROM todo_list WHERE visible = :visible")
+    List<ToDo> getVisibilityAll(boolean visible);
+
     @Insert
     void insertAll(ToDo... todos);
 
