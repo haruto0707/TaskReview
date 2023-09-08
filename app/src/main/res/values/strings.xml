@@ -5,4 +5,7 @@
     <string name="title_priority">優先度</string>
     <string name="title_estimated_time">推定時間(分)</string>
     <string name="title_register">登録</string>
+    <string name="title_priority_low">低</string>
+    <string name="title_priority_middle">中</string>
+    <string name="title_priority_high">高</string>
 </resources>
