@@ -1,5 +1,6 @@
 package jp.ac.meijou.android.taskreview.room;
 
+import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Process;
 import android.os.HandlerThread;
@@ -56,11 +57,12 @@ public class ToDoViewHolder extends ViewHolder {
      * estimatedTime:予想時間
      * @param toDo DB内のデータを格納したtoDoクラス
      */
+    @SuppressLint("SetTextI18n")
     public void onBind(ToDo toDo) {
         binding.titleView.setText(toDo.title);
         binding.subjectView.setText(toDo.subject);
         binding.priorityView.setText(toDo.getPriorityString());
-        binding.estimatedTimeView.setText(toDo.estimatedTime);
+        binding.estimatedTimeView.setText(toDo.estimatedTime +"分");
         binding.getRoot().setOnClickListener(v -> {
             asyncHandler.post(() -> {
                 toDo.visible = false;

@@ -1,15 +1,19 @@
 package jp.ac.meijou.android.taskreview;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Process;
 import android.os.Handler;
 import android.os.HandlerThread;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import jp.ac.meijou.android.taskreview.databinding.ActivityMainBinding;
@@ -21,15 +25,14 @@ import jp.ac.meijou.android.taskreview.room.ToDoListAdapter;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
-
     // DBアクセス用のスレッド
     private HandlerThread handlerThread;
     // DBアクセス用のスレッドのハンドラ
     private Handler asyncHandler;
     // DBアクセス用のDAO
     private IToDoDao dao;
-
     private ToDoListAdapter adapter;
+    private ActivityResultLauncher<Intent> registerLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         initToDoList(binding.toDoView);
+        initMenu();
     }
 
     /**
@@ -93,10 +97,22 @@ public class MainActivity extends AppCompatActivity {
                 adapter.submitList(list);
             });
         });
-
-        //
-
+        registerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    asyncHandler.post(() -> {
+                        var list = dao.getVisibilityAll(true);
+                        adapter.submitList(list);
+                    });
+                });
     }
+    private void initMenu() {
+        binding.menu.registerButton.setOnClickListener(v -> {
+            var intent = new Intent(this, RegisterActivity.class);
+            registerLauncher.launch(intent);
+        });
+    }
+
 
     /**
      * 終了時はスレッドを終了させる。
