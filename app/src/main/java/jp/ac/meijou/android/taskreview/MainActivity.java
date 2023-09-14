@@ -13,25 +13,22 @@ import android.os.Process;
 import android.os.Handler;
 import android.os.HandlerThread;
 
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import jp.ac.meijou.android.taskreview.databinding.ActivityMainBinding;
-import jp.ac.meijou.android.taskreview.room.IToDoDao;
-import jp.ac.meijou.android.taskreview.room.ToDo;
 import jp.ac.meijou.android.taskreview.room.ToDoDatabase;
 import jp.ac.meijou.android.taskreview.room.ToDoDiffCallback;
-import jp.ac.meijou.android.taskreview.room.ToDoListAdapter;
+import jp.ac.meijou.android.taskreview.ui.ToDoListAdapter;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
-    // DBアクセス用のスレッド
+    /** 呼び出すスレッド名 */
+    private static final String THREAD_NAME = "main_activity-db-thread";
+    /** DBアクセス用のスレッド */
     private HandlerThread handlerThread;
-    // DBアクセス用のスレッドのハンドラ
+    /** DBアクセス用のスレッドのハンドラ */
     private Handler asyncHandler;
-    // DBアクセス用のDAO
-    private IToDoDao dao;
+    /** ToDoリストを管理するクラス */
     private ToDoListAdapter adapter;
+    /** 画面遷移用のクラス */
     private ActivityResultLauncher<Intent> registerLauncher;
 
     @Override
@@ -47,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
      * ToDoリストを初期化するメソッド<br>
      * データベース取得用のスレッドを初期化、開始し、RecycleViewの初期化し、データベースからToDoリストを取得する。
      * スレッドを生成した場合は終了時({@link jp.ac.meijou.android.taskreview.MainActivity#onDestroy()})
-     * や画面遷移時などに終了するように設定する<br>
+     * や画面遷移時などに終了するように設定する。<br>
      * {@link ToDoDatabase} データベースの管理するクラス<br>
      * {@link ToDoDiffCallback} ToDoリストに変更があった際に、通知するためのクラス<br>
      * {@link ToDoListAdapter} ToDoリストの表示を制御するためのクラス<br>
@@ -55,17 +52,22 @@ public class MainActivity extends AppCompatActivity {
      */
     private void initToDoList(RecyclerView recyclerView) {
         // DBアクセス用のスレッドを初期化、開始する
-        handlerThread = new HandlerThread("db-thread", Process.THREAD_PRIORITY_DEFAULT);
+        handlerThread = new HandlerThread(THREAD_NAME, Process.THREAD_PRIORITY_DEFAULT);
         handlerThread.start();
         asyncHandler = new Handler(handlerThread.getLooper());
 
         // DBアクセス用のDAOを初期化する、データベース内のデータを取得
         var db = ToDoDatabase.getInstance(this);
-        dao = db.toDoDao();
+        var dao = db.toDoDao();
 
         // ToDoListを管理するクラスを初期化する
         var callback = new ToDoDiffCallback();
-        adapter = new ToDoListAdapter(callback, dao);
+        adapter = new ToDoListAdapter(callback, toDo -> () -> {
+            toDo.visible = false;
+            dao.update(toDo);
+            var list = dao.getVisibilityAll(true);
+            adapter.submitList(list);
+        });
 
         // DBアクセス用スレッド内でデータベースからToDoリストを取得する
         asyncHandler.post(() -> {
@@ -88,6 +90,8 @@ public class MainActivity extends AppCompatActivity {
                 adapter.submitList(list);
             });
         });
+
+        // 画面遷移時の処理を設定
         registerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -97,6 +101,10 @@ public class MainActivity extends AppCompatActivity {
                     });
                 });
     }
+
+    /**
+     * 画面下部メニューの初期化を行うメソッド
+     */
     private void initMenu() {
         binding.menu.registerButton.setOnClickListener(v -> {
             var intent = new Intent(this, RegisterActivity.class);

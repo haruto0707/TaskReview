@@ -1,7 +1,5 @@
-package jp.ac.meijou.android.taskreview.room;
+package jp.ac.meijou.android.taskreview.ui;
 
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -10,35 +8,52 @@ import androidx.recyclerview.widget.DiffUtil.ItemCallback;
 import androidx.recyclerview.widget.ListAdapter;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import jp.ac.meijou.android.taskreview.databinding.ViewTodoBinding;
+import jp.ac.meijou.android.taskreview.room.ToDo;
+import jp.ac.meijou.android.taskreview.ui.ToDoViewHolder;
 
 /**
  * RecyclerViewにToDoリストの要素を表示するためのクラス
  * @see androidx.recyclerview.widget.ListAdapter
  */
 public class ToDoListAdapter extends ListAdapter<ToDo, ToDoViewHolder> {
-    private IToDoDao dao;
+    /** 生成したToDoリストの要素をRecyclerViewに反映するためのクラス */
     private ToDoViewHolder viewHolder;
-    public ToDoListAdapter(@NonNull ItemCallback<ToDo> diffCallback, IToDoDao dao) {
+    /** DBのデータを更新し、RecyclerViewに変更を反映するためのRunnableを生成する関数インターフェース */
+    private Function<ToDo, Runnable> updateView;
+    public ToDoListAdapter(@NonNull ItemCallback<ToDo> diffCallback, Function<ToDo, Runnable> function) {
         super(diffCallback);
-        this.dao = dao;
+        this.updateView = function;
     }
 
+    /**
+     * MainActivity終了時にスレッドを停止させるメソッド
+     */
     public void finishThread() {
         Optional.ofNullable(viewHolder)
                 .ifPresent(ToDoViewHolder::finishThread);
     }
 
+    /**
+     * RecyclerViewに表示するためのクラスを生成するメソッド
+     * スレッドを終了させるために生成したクラスを保持。<br><br>
+     * {@inheritDoc}
+     */
     @NonNull
     @Override
     public ToDoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         var inflater = LayoutInflater.from(parent.getContext());
         var binding = ViewTodoBinding.inflate(inflater, parent, false);
-        viewHolder = new ToDoViewHolder(binding, dao, this);
+        viewHolder = new ToDoViewHolder(binding, updateView);
         return viewHolder;
     }
 
+    /**
+     * RecyclerViewに表示する要素のデータをバインディングするメソッド<br><br>
+     * {@inheritDoc}
+     */
     @Override
     public void onBindViewHolder(@NonNull ToDoViewHolder holder, int position) {
         var item = getCurrentList().get(position);
