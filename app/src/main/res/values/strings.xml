@@ -8,4 +8,6 @@
     <string name="title_priority_low">低</string>
     <string name="title_priority_middle">中</string>
     <string name="title_priority_high">高</string>
+    <string name="title_deadline">期限</string>
+    <string name="title_detail">詳細</string>
 </resources>
