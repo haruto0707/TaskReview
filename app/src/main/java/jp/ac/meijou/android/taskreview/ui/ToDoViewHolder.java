@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Process;
 import android.os.HandlerThread;
 import android.view.View;
+import android.view.View.*;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView.ViewHolder;
@@ -26,19 +27,22 @@ public class ToDoViewHolder extends ViewHolder {
     private HandlerThread handlerThread;
     /** 変更内容をDBに反映するスレッドのハンドラ */
     private Handler asyncHandler;
-    /** ToDoの変更をDB上に変更するRunnableを生成する関数インターフェース */
-    private Function<ToDo, Runnable> updateView;
+    /** ToDOリストからToDoを削除するRunnableを生成する関数インターフェース */
+    private Function<ToDo, Runnable> hideToDo;
+    /** ToDoの詳細画面を開くためのIntentを生成する関数インターフェース */
+    private Function<ToDo, OnClickListener> openDetailIntent;
 
     /**
      * ToDoリストの要素を生成する時のコンストラクタ<br>
      * 引数を反映させ、スレッドの初期化、開始を行う。
      * @param binding ToDoリストの要素のバインディングクラス
-     * @param function ToDoの変更をDB上に変更するRunnableを生成する関数インターフェース
+     * @param hideToDo ToDoの変更をDB上に変更するRunnableを生成する関数インターフェース
      */
-    public ToDoViewHolder(@NonNull ViewTodoBinding binding, Function<ToDo, Runnable> function) {
+    public ToDoViewHolder(@NonNull ViewTodoBinding binding, Function<ToDo, Runnable> hideToDo, Function<ToDo, View.OnClickListener> openDetailIntent) {
         this(binding.getRoot());
         this.binding = binding;
-        this.updateView = function;
+        this.hideToDo = hideToDo;
+        this.openDetailIntent = openDetailIntent;
         handlerThread = new HandlerThread(THREAD_NAME, Process.THREAD_PRIORITY_DEFAULT);
         handlerThread.start();
         asyncHandler = new Handler(handlerThread.getLooper());
@@ -67,8 +71,11 @@ public class ToDoViewHolder extends ViewHolder {
         binding.subjectView.setText(toDo.subject);
         binding.priorityView.setText(toDo.getPriorityString());
         binding.estimatedTimeView.setText(toDo.estimatedTime + "分");
+        binding.deadlineView.setText("期限 : " + toDo.deadline);
+        binding.deleteButton
+                .setOnClickListener(v -> asyncHandler.post(hideToDo.apply(toDo)));
         binding.getRoot()
-                .setOnClickListener(v -> asyncHandler.post(updateView.apply(toDo)));
+                .setOnClickListener(openDetailIntent.apply(toDo));
     }
     /**
      * スレッドを終了するメソッド<br>

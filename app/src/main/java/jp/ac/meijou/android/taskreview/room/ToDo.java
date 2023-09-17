@@ -100,12 +100,24 @@ public class ToDo {
      * @param priority 優先度
      * @return int型の優先度
      */
-    private int toInt(Priority priority) {
+    public int toInt(Priority priority) {
         switch (priority) {
             case LOW: return 0;
             case MEDIUM: return 1;
             case HIGH: return 2;
             default: return -1;
+        }
+    }
+
+    /**
+     * int型の優先度を{@link Priority}に変換する<br>
+     * @return 優先度
+     */
+    public Priority getPriority() {
+        switch (priority) {
+            case 1: return Priority.MEDIUM;
+            case 2: return Priority.HIGH;
+            default: return Priority.LOW;
         }
     }
 

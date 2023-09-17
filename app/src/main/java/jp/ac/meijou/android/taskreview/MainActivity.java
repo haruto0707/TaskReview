@@ -12,14 +12,22 @@ import android.os.Bundle;
 import android.os.Process;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.util.Log;
+import android.view.View.*;
+
+import java.util.function.Function;
 
 import jp.ac.meijou.android.taskreview.databinding.ActivityMainBinding;
+import jp.ac.meijou.android.taskreview.room.IToDoDao;
+import jp.ac.meijou.android.taskreview.room.ToDo;
 import jp.ac.meijou.android.taskreview.room.ToDoDatabase;
 import jp.ac.meijou.android.taskreview.room.ToDoDiffCallback;
 import jp.ac.meijou.android.taskreview.ui.ToDoListAdapter;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
+
+    public static final String KEY_TODO_ID = "todo_id";
     /** 呼び出すスレッド名 */
     private static final String THREAD_NAME = "main_activity-db-thread";
     /** DBアクセス用のスレッド */
@@ -60,14 +68,17 @@ public class MainActivity extends AppCompatActivity {
         var db = ToDoDatabase.getInstance(this);
         var dao = db.toDoDao();
 
-        // ToDoListを管理するクラスを初期化する
-        var callback = new ToDoDiffCallback();
-        adapter = new ToDoListAdapter(callback, toDo -> () -> {
-            toDo.visible = false;
-            dao.update(toDo);
-            var list = dao.getVisibilityAll(true);
-            adapter.submitList(list);
-        });
+        // 画面遷移時の処理を設定
+        registerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> asyncHandler.post(
+                        () -> {
+                            var list = dao.getVisibilityAll(true);
+                            adapter.submitList(list);
+                        }));
+
+        // ToDoリストを管理するクラスを初期化する
+        initToDoListAdapter(dao);
 
         // DBアクセス用スレッド内でデータベースからToDoリストを取得する
         asyncHandler.post(() -> {
@@ -83,23 +94,39 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.addItemDecoration(itemDecoration);
 
         // 削除ボタンの初期化、設定
-        binding.button2.setOnClickListener(v -> {
-            asyncHandler.post(() -> {
-                dao.deleteAll();
-                var list = dao.getAll();
-                adapter.submitList(list);
-            });
-        });
+        binding.button2.setOnClickListener(v -> asyncHandler.post(
+                () -> {
+                    dao.deleteAll();
+                    var list = dao.getAll();
+                    adapter.submitList(list);
+                }));
+    }
 
-        // 画面遷移時の処理を設定
-        registerLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    asyncHandler.post(() -> {
-                        var list = dao.getVisibilityAll(true);
-                        adapter.submitList(list);
-                    });
-                });
+    /**
+     * ToDoリストを管理するクラスを初期化するメソッド<br>
+     * @param dao データベースのアクセス、操作を定義しているクラス
+     */
+    private void initToDoListAdapter(IToDoDao dao) {
+        // ToDoListを管理するクラスを初期化する
+        var callback = new ToDoDiffCallback();
+
+        // ToDoリストの表示を非表示にする処理をするRunnableを返す関数インターフェースを定義
+        Function<ToDo, Runnable> hideToDo = toDo -> () -> {
+            toDo.visible = false;
+            dao.update(toDo);
+            var list = dao.getVisibilityAll(true);
+            adapter.submitList(list);
+        };
+
+        // ToDoリストをクリックした際に画面遷移をするOnClickListenerを返す関数インターフェースを定義
+        Function<ToDo, OnClickListener> openDetailIntent = toDo -> v -> {
+            var intent = new Intent(this, RegisterActivity.class);
+            intent.putExtra(KEY_TODO_ID, toDo.id);
+            registerLauncher.launch(intent);
+        };
+
+        // Adapterを初期化する
+        adapter = new ToDoListAdapter(callback, hideToDo, openDetailIntent);
     }
 
     /**
@@ -111,7 +138,6 @@ public class MainActivity extends AppCompatActivity {
             registerLauncher.launch(intent);
         });
     }
-
 
     /**
      * 終了時はスレッドを終了させる。

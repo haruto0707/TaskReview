@@ -46,6 +46,13 @@ public interface IToDoDao {
     @Query("SELECT * FROM todo_list WHERE visible = :visible")
     List<ToDo> getVisibilityAll(boolean visible);
     /**
+     * DBに格納されているデータの内、{@code id}と一致するデータを取得する
+     * @param id 取得するデータのID
+     * @return DBに格納されているデータの内、{@code id}と一致するデータ
+     */
+    @Query("SELECT * FROM todo_list WHERE id = :id")
+    ToDo get(int id);
+    /**
      * DBにデータを追加する
      * @param todo 追加するデータ
      */

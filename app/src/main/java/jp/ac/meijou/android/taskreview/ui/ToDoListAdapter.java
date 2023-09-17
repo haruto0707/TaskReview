@@ -1,8 +1,11 @@
 package jp.ac.meijou.android.taskreview.ui;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil.ItemCallback;
 import androidx.recyclerview.widget.ListAdapter;
@@ -22,10 +25,14 @@ public class ToDoListAdapter extends ListAdapter<ToDo, ToDoViewHolder> {
     /** 生成したToDoリストの要素をRecyclerViewに反映するためのクラス */
     private ToDoViewHolder viewHolder;
     /** DBのデータを更新し、RecyclerViewに変更を反映するためのRunnableを生成する関数インターフェース */
-    private Function<ToDo, Runnable> updateView;
-    public ToDoListAdapter(@NonNull ItemCallback<ToDo> diffCallback, Function<ToDo, Runnable> function) {
+    private Function<ToDo, Runnable> hideToDo;
+
+    private Function<ToDo, View.OnClickListener> openDetailIntent;
+
+    public ToDoListAdapter(@NonNull ItemCallback<ToDo> diffCallback, Function<ToDo, Runnable> hideToDo, Function<ToDo, View.OnClickListener> openDetailIntent) {
         super(diffCallback);
-        this.updateView = function;
+        this.hideToDo = hideToDo;
+        this.openDetailIntent = openDetailIntent;
     }
 
     /**
@@ -46,7 +53,7 @@ public class ToDoListAdapter extends ListAdapter<ToDo, ToDoViewHolder> {
     public ToDoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         var inflater = LayoutInflater.from(parent.getContext());
         var binding = ViewTodoBinding.inflate(inflater, parent, false);
-        viewHolder = new ToDoViewHolder(binding, updateView);
+        viewHolder = new ToDoViewHolder(binding, hideToDo, openDetailIntent);
         return viewHolder;
     }
 
