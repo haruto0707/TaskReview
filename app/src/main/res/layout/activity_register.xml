@@ -19,6 +19,7 @@
         android:layout_width="match_parent"
         android:fillViewport="true"
         android:layout_height="820dp"
+        android:isScrollContainer="false"
         app:layout_constraintTop_toTopOf="parent"
         tools:layout_editor_absoluteX="1dp">
 
