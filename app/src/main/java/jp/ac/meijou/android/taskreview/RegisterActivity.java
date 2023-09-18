@@ -57,6 +57,8 @@ public class RegisterActivity extends AppCompatActivity {
                             binding.toDoEditText.setText(toDo.title);
                             binding.subjectEditText.setText(toDo.subject);
                             binding.editTextNumber.setText(toDo.estimatedTime);
+                            binding.deadlineEditNumber.setText(toDo.deadline);
+                            binding.detailEditText.setText(toDo.detail);
                             if(toDo.getPriority() == Priority.LOW) {
                                 binding.radioLow.setChecked(true);
                             } else if(toDo.getPriority() == Priority.MEDIUM) {
@@ -91,12 +93,14 @@ public class RegisterActivity extends AppCompatActivity {
             var content = binding.toDoEditText.getText().toString();
             var subject = binding.subjectEditText.getText().toString();
             var estimatedTime = binding.editTextNumber.getText().toString();
+            var deadline = binding.deadlineEditNumber.getText().toString();
+            var detail = binding.detailEditText.getText().toString();
             var priority = getPriority();
             // DBアクセス用スレッド内でデータベースにデータを挿入する
             asyncHandler.post(() -> {
                 if(id == -1) {
                     // ToDoリストのデータを作成する
-                    var toDo = new ToDo(content, subject, estimatedTime, "2021-07-01", priority, "detail", "note", true);
+                    var toDo = new ToDo(content, subject, estimatedTime, "2021-07-01", priority, detail, "note", true);
                     dao.insert(toDo);
                 } else {
                     // ToDoリストのデータを更新する
@@ -104,6 +108,8 @@ public class RegisterActivity extends AppCompatActivity {
                     toDo.title = content;
                     toDo.subject = subject;
                     toDo.estimatedTime = estimatedTime;
+                    // toDo.deadline = deadline;
+                    toDo.detail = detail;
                     toDo.priority = toDo.toInt(priority);
                     dao.update(toDo);
                 }
