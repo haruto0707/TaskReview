@@ -1,6 +1,7 @@
 package jp.ac.meijou.android.taskreview.ui;
 
 import static jp.ac.meijou.android.taskreview.room.ToDo.TIME_FORMAT_DEFAULT;
+import static jp.ac.meijou.android.taskreview.room.ToDo.timeToInt;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -15,7 +16,7 @@ import androidx.fragment.app.DialogFragment;
 
 /**
  * 時刻を選択するダイアログを表示するクラス<br>
- * ドラムロール式のダイヤログを表示し、{@link EditText}に入力された時刻を表示する。
+ * ドラムロール式のダイヤログを表示し、{@link EditText}には入力された時刻を表示する。
  */
 public class TimePickerFragment extends DialogFragment implements TimePickerDialog.OnTimeSetListener {
     /**
@@ -40,9 +41,13 @@ public class TimePickerFragment extends DialogFragment implements TimePickerDial
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        final var calender = java.util.Calendar.getInstance();
-        var hour = calender.get(java.util.Calendar.HOUR_OF_DAY);
-        var minute = calender.get(java.util.Calendar.MINUTE);
+        var hour = 0;
+        var minute = 0;
+        if(!editText.getText().toString().isEmpty()) {
+            final var time = timeToInt(editText.getText().toString());
+            hour = time / 60;
+            minute = time % 60;
+        }
         return new TimePickerDialog(requireActivity(), android.R.style.Theme_Holo_Dialog, this, hour, minute, true);
     }
 
