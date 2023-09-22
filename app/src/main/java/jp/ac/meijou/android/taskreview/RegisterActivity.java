@@ -1,20 +1,30 @@
 package jp.ac.meijou.android.taskreview;
 
+import static jp.ac.meijou.android.taskreview.room.ToDo.timeToInt;
+
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Process;
 import android.util.Log;
+import android.widget.DatePicker;
 
+import java.util.Calendar;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import jp.ac.meijou.android.taskreview.databinding.ActivityRegisterBinding;
 import jp.ac.meijou.android.taskreview.room.ToDo;
 import jp.ac.meijou.android.taskreview.room.ToDo.Priority;
 import jp.ac.meijou.android.taskreview.room.ToDoDatabase;
+import jp.ac.meijou.android.taskreview.ui.DatePickerFragment;
+import jp.ac.meijou.android.taskreview.ui.TimePickerFragment;
 
 public class RegisterActivity extends AppCompatActivity {
     private ActivityRegisterBinding binding;
@@ -32,13 +42,30 @@ public class RegisterActivity extends AppCompatActivity {
         binding = ActivityRegisterBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         initView();
-        initRegisterButton();
+        initButton();
     }
 
     /**
      * ToDoリストのデータからTextViewに文字列をセットするメソッド
      */
     private void initView() {
+        initViewText();
+
+        binding.deadlineEditNumber.setOnClickListener(v -> {
+            var datePicker = new DatePickerFragment(binding.deadlineEditNumber);
+            datePicker.show(getSupportFragmentManager(), "datePicker");
+        });
+
+        binding.editTextNumber.setOnClickListener(v -> {
+            var timePicker = new TimePickerFragment(binding.editTextNumber);
+            timePicker.show(getSupportFragmentManager(), "timePicker");
+        });
+    }
+
+    /**
+     * ToDoリストのデータからTextViewに文字列をセットするメソッド
+     */
+    private void initViewText() {
         id = getIntent().getIntExtra(MainActivity.KEY_TODO_ID, -1);
         if(id != -1) {
             // DBアクセス用のDAOを初期化する、データベース内のデータを取得
@@ -56,7 +83,7 @@ public class RegisterActivity extends AppCompatActivity {
                         .ifPresent(toDo -> {
                             binding.toDoEditText.setText(toDo.title);
                             binding.subjectEditText.setText(toDo.subject);
-                            binding.editTextNumber.setText(toDo.estimatedTime);
+                            binding.editTextNumber.setText(toDo.getStringTime(ToDo.TimeFormat.DEFAULT));
                             binding.deadlineEditNumber.setText(toDo.deadline);
                             binding.detailEditText.setText(toDo.detail);
                             if(toDo.getPriority() == Priority.LOW) {
@@ -77,7 +104,7 @@ public class RegisterActivity extends AppCompatActivity {
      * {@code registerButton} ボタンを押した際に、データベースにデータを登録する<br>
      * {@code todoButton} メニュー画面に戻るボタンを押した際に、メニュー画面に戻る<br>
      */
-    private void initRegisterButton() {
+    private void initButton() {
         // DBアクセス用のDAOを初期化する、データベース内のデータを取得
         var db = ToDoDatabase.getInstance(this);
         var dao = db.toDoDao();
@@ -92,7 +119,7 @@ public class RegisterActivity extends AppCompatActivity {
             // データベースに登録するデータを作成する
             var content = binding.toDoEditText.getText().toString();
             var subject = binding.subjectEditText.getText().toString();
-            var estimatedTime = binding.editTextNumber.getText().toString();
+            var estimatedTime = timeToInt(binding.editTextNumber.getText().toString());
             var deadline = binding.deadlineEditNumber.getText().toString();
             var detail = binding.detailEditText.getText().toString();
             var priority = getPriority();
@@ -108,7 +135,7 @@ public class RegisterActivity extends AppCompatActivity {
                     toDo.title = content;
                     toDo.subject = subject;
                     toDo.estimatedTime = estimatedTime;
-                    // toDo.deadline = deadline;
+                    toDo.deadline = deadline;
                     toDo.detail = detail;
                     toDo.priority = toDo.toInt(priority);
                     dao.update(toDo);

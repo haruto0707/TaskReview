@@ -1,8 +1,13 @@
 package jp.ac.meijou.android.taskreview.room;
 
+import android.annotation.SuppressLint;
+
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Insert;
 import androidx.room.PrimaryKey;
+
+import java.util.Optional;
 
 /**
  * RoomによるDBのデータを格納するクラスの定義<br>
@@ -13,6 +18,9 @@ import androidx.room.PrimaryKey;
 public class ToDo {
     /** エラーメッセージ */
     public static final String MESSAGE_ERROR = "ERROR";
+    public static final String TIME_FORMAT_DEFAULT = "%02d:%02d";
+    public static final String TIME_FORMAT_LABELED = "%02d時間%02d分";
+    public static final String DATE_FORMAT = "%d-%02d-%02d";
     /** IDは主キーで自動生成 */
     @PrimaryKey(autoGenerate = true)
     public int id;
@@ -24,7 +32,7 @@ public class ToDo {
     public String subject;
     /** TODO画面で表示される推定時間 */
     @ColumnInfo(name = "estimated_time")
-    public String estimatedTime;
+    public int estimatedTime;
     /** TODO画面で表示される優先度 */
     @ColumnInfo(name = "priority")
     public int priority;
@@ -50,7 +58,7 @@ public class ToDo {
     protected ToDo() {
         this.title = MESSAGE_ERROR;
         this.subject = MESSAGE_ERROR;
-        this.estimatedTime = MESSAGE_ERROR;
+        this.estimatedTime = -1;
         this.deadline = MESSAGE_ERROR;
         this.priority = -1;
         this.detail = MESSAGE_ERROR;
@@ -69,7 +77,7 @@ public class ToDo {
      * @param note メモ
      * @param visible 表示フラグで{@code false}の場合はTODOリストに表示されない
      */
-    public ToDo(String title, String subject, String estimatedTime, String deadline, Priority priority, String detail, String note, boolean visible) {
+    public ToDo(String title, String subject, int estimatedTime, String deadline, Priority priority, String detail, String note, boolean visible) {
         this.title = title;
         this.subject = subject;
         this.estimatedTime = estimatedTime;
@@ -91,6 +99,14 @@ public class ToDo {
         LOW,
         MEDIUM,
         HIGH
+    }
+
+    /**
+     * フォーマットの種類
+     */
+    public enum TimeFormat {
+        DEFAULT,
+        LABELED
     }
 
     /**
@@ -131,6 +147,35 @@ public class ToDo {
             case 1: return "MEDIUM";
             case 2: return "HIGH";
             default: return "ERROR";
+        }
+    }
+
+    /**
+     * 推定時間を文字列に変換する<br>
+     * @return 推定時間を表す文字列
+     */
+    @SuppressLint("DefaultLocale")
+    public String getStringTime(TimeFormat format) {
+        var hour = estimatedTime / 60;
+        var minute = estimatedTime % 60;
+        switch(format) {
+            case LABELED: return String.format(TIME_FORMAT_LABELED, hour, minute);
+            default: return String.format(TIME_FORMAT_DEFAULT, hour, minute);
+        }
+    }
+
+    /**
+     * 文字列を推定時間に変換する<br>
+     * @param time 推定時間を表す文字列
+     * @return 推定時間
+     */
+    public static int timeToInt(String time) {
+        if(time.isEmpty()) return -1; // 空文字の場合は-1を返す
+        var dateTime = time.split(":");
+        switch(dateTime.length) {
+            case 1: return Integer.parseInt(dateTime[0]);
+            case 2: return Integer.parseInt(dateTime[0]) * 60 + Integer.parseInt(dateTime[1]);
+            default: return -1;  // エラーの場合は-1を返す
         }
     }
 }

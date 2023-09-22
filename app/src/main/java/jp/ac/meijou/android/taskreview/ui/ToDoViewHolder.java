@@ -70,7 +70,7 @@ public class ToDoViewHolder extends ViewHolder {
         binding.titleView.setText(toDo.title);
         binding.subjectView.setText(toDo.subject);
         binding.priorityView.setText(toDo.getPriorityString());
-        binding.estimatedTimeView.setText(toDo.estimatedTime + "分");
+        binding.estimatedTimeView.setText(toDo.getStringTime(ToDo.TimeFormat.LABELED));
         binding.deadlineView.setText("期限 : " + toDo.deadline);
         binding.deleteButton
                 .setOnClickListener(v -> asyncHandler.post(hideToDo.apply(toDo)));

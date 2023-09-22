@@ -13,7 +13,7 @@ import androidx.room.RoomDatabase;
  * このクラスを使用する場合は{@link jp.ac.meijou.android.taskreview.room.ToDoDatabase}
  * を通じてインスタンスを取得する。
  */
-@Database(entities = {ToDo.class}, version = 2, exportSchema = false)
+@Database(entities = {ToDo.class}, version = 3, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract IToDoDao toDoDao();
 }
