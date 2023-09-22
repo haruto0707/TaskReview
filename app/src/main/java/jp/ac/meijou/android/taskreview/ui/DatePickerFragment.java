@@ -45,7 +45,7 @@ public class DatePickerFragment extends DialogFragment implements OnDateSetListe
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         final var calender = Calendar.getInstance();
         var year = calender.get(Calendar.YEAR);
-        var month = calender.get(Calendar.MONTH);
+        var month = calender.get(Calendar.MONTH) + 1;  // Calender.MONTHは0から始まるので+1する
         var day = calender.get(Calendar.DAY_OF_MONTH);
 
         return new DatePickerDialog(requireActivity(), this, year, month, day);
