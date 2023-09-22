@@ -1,16 +1,22 @@
 package jp.ac.meijou.android.taskreview;
 
+import static androidx.core.content.ContentProviderCompat.requireContext;
 import static jp.ac.meijou.android.taskreview.room.ToDo.timeToInt;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Process;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.DatePicker;
 
 import java.util.Calendar;
@@ -48,8 +54,15 @@ public class RegisterActivity extends AppCompatActivity {
     /**
      * ToDoリストのデータからTextViewに文字列をセットするメソッド
      */
+    @SuppressLint("ClickableViewAccessibility")
     private void initView() {
         initViewText();
+
+        binding.scrollView.setOnTouchListener((v, event) -> {
+            hideKeyboard();
+            binding.scrollView.requestFocus();
+            return false;
+        });
 
         binding.deadlineEditNumber.setOnClickListener(v -> {
             var datePicker = new DatePickerFragment(binding.deadlineEditNumber);
@@ -159,13 +172,18 @@ public class RegisterActivity extends AppCompatActivity {
      * ラジオボタンの選択状態から、優先度を取得するメソッド
      */
     private ToDo.Priority getPriority() {
-        if(binding.radioLow.isChecked()) {
+        if (binding.radioLow.isChecked()) {
             return ToDo.Priority.LOW;
-        } else if(binding.radioMiddle.isChecked()) {
+        } else if (binding.radioMiddle.isChecked()) {
             return ToDo.Priority.MEDIUM;
-        } else if(binding.radioHigh.isChecked()) {
+        } else if (binding.radioHigh.isChecked()) {
             return ToDo.Priority.HIGH;
         }
         return ToDo.Priority.LOW;
+    }
+
+    private void hideKeyboard() {
+        var imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(binding.getRoot().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
     }
 }

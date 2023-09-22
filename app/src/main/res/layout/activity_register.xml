@@ -24,8 +24,11 @@
         tools:layout_editor_absoluteX="1dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/scrollView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:focusableInTouchMode="true" >
 
             <TextView
                 android:id="@+id/contentTitleView"
@@ -116,8 +119,8 @@
                 android:layout_width="230dp"
                 android:layout_height="wrap_content"
                 android:ems="10"
-                android:inputType="time"
                 android:focusable="false"
+                android:inputType="time"
                 app:layout_constraintBottom_toBottomOf="@+id/estimatedTimeTitleView"
                 app:layout_constraintStart_toStartOf="@id/radio_group"
                 app:layout_constraintTop_toTopOf="@+id/estimatedTimeTitleView"
@@ -130,8 +133,8 @@
                 android:layout_marginStart="4dp"
                 android:ems="10"
                 android:focusable="false"
-                android:inputType="date"
                 android:hint="@string/title_deadline"
+                android:inputType="date"
                 app:layout_constraintBottom_toBottomOf="@+id/deadlineTitleView"
                 app:layout_constraintStart_toStartOf="@id/radio_group"
                 app:layout_constraintTop_toTopOf="@+id/deadlineTitleView" />
