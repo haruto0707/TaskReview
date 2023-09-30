@@ -27,6 +27,7 @@ import jp.ac.meijou.android.taskreview.ui.ToDoListAdapter;
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
 
+    public static final String KEY_IS_PERSONAL = "todo_is_personal";
     public static final String KEY_TODO_ID = "todo_id";
     /** 呼び出すスレッド名 */
     private static final String THREAD_NAME = "main_activity-db-thread";
@@ -122,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
         Function<ToDo, OnClickListener> openDetailIntent = toDo -> v -> {
             var intent = new Intent(this, RegisterActivity.class);
             intent.putExtra(KEY_TODO_ID, toDo.id);
+            intent.putExtra(KEY_IS_PERSONAL, toDo.isPersonal);
             registerLauncher.launch(intent);
         };
 

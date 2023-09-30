@@ -1,29 +1,19 @@
 package jp.ac.meijou.android.taskreview;
 
-import static androidx.core.content.ContentProviderCompat.requireContext;
 import static jp.ac.meijou.android.taskreview.room.ToDo.timeToInt;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
-import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Process;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.DatePicker;
 
-import java.util.Calendar;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import jp.ac.meijou.android.taskreview.databinding.ActivityRegisterBinding;
 import jp.ac.meijou.android.taskreview.room.ToDo;
@@ -42,6 +32,7 @@ public class RegisterActivity extends AppCompatActivity {
      * ToDoリストのID
      */
     private int id;
+    private boolean isPersonal;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +71,7 @@ public class RegisterActivity extends AppCompatActivity {
      */
     private void initViewText() {
         id = getIntent().getIntExtra(MainActivity.KEY_TODO_ID, -1);
+        isPersonal =getIntent().getBooleanExtra(MainActivity.KEY_IS_PERSONAL, true);
         if(id != -1) {
             // DBアクセス用のDAOを初期化する、データベース内のデータを取得
             var db = ToDoDatabase.getInstance(this);
@@ -92,7 +84,7 @@ public class RegisterActivity extends AppCompatActivity {
 
             //  ToDoをDBからデータを取得し、画面に表示する
             asyncHandler.post(() -> {
-                Optional.ofNullable(dao.get(id))
+                Optional.ofNullable(dao.get(id, isPersonal))
                         .ifPresent(toDo -> {
                             binding.toDoEditText.setText(toDo.title);
                             binding.subjectEditText.setText(toDo.subject);
@@ -140,11 +132,11 @@ public class RegisterActivity extends AppCompatActivity {
             asyncHandler.post(() -> {
                 if(id == -1) {
                     // ToDoリストのデータを作成する
-                    var toDo = new ToDo(content, subject, estimatedTime, "2021-07-01", priority, detail, "note", true);
+                    var toDo = new ToDo(true, content, subject, estimatedTime, deadline, priority, detail, true);
                     dao.insert(toDo);
                 } else {
                     // ToDoリストのデータを更新する
-                    var toDo = dao.get(id);
+                    var toDo = dao.get(id, isPersonal);
                     toDo.title = content;
                     toDo.subject = subject;
                     toDo.estimatedTime = estimatedTime;
@@ -157,8 +149,6 @@ public class RegisterActivity extends AppCompatActivity {
                 handlerThread.quit();
             });
         });
-
-        // メニュー画面に戻るボタン
         binding.menu.todoButton.setOnClickListener(v -> {
             var intent = new Intent();
             // メニュー画面に戻るボタンを押した際に、resultLauncherのメソッドを呼び出す
