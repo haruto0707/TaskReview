@@ -31,7 +31,7 @@ public class ToDoDiffCallback extends ItemCallback<ToDo> {
                 && Objects.equals(oldItem.deadline, newItem.deadline)
                 && Objects.equals(oldItem.estimatedTime, newItem.estimatedTime)
                 && Objects.equals(oldItem.detail, newItem.detail)
-                && Objects.equals(oldItem.note, newItem.note)
+                && oldItem.isPersonal == newItem.isPersonal
                 && oldItem.visible == newItem.visible
                 && oldItem.priority == newItem.priority;
     }

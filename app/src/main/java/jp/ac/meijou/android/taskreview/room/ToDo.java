@@ -4,26 +4,29 @@ import android.annotation.SuppressLint;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
-import androidx.room.Insert;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-import java.util.Optional;
 
 /**
  * RoomによるDBのデータを格納するクラスの定義<br>
  * データ操作を行う場合は{@link jp.ac.meijou.android.taskreview.room.IToDoDao}を通じて行う。<br>
  * tableNameはデータベースのテーブル名を指定する。
  */
-@Entity(tableName = "todo_list")
+@Entity(tableName = "todo_list", indices = {@Index(value = {"id", "is_personal"}, unique = true)})
 public class ToDo {
     /** エラーメッセージ */
     public static final String MESSAGE_ERROR = "ERROR";
     public static final String TIME_FORMAT_DEFAULT = "%02d:%02d";
     public static final String TIME_FORMAT_LABELED = "%02d時間%02d分";
     public static final String DATE_FORMAT = "%d-%02d-%02d";
+
     /** IDは主キーで自動生成 */
     @PrimaryKey(autoGenerate = true)
     public int id;
+    /** 個人で設定したTODOであるかどうか */
+    @ColumnInfo(name = "is_personal")
+    public boolean isPersonal;
     /** やることリストでTODO画面で上側に表示される文字 */
     @ColumnInfo(name = "title")
     public String title;
@@ -42,9 +45,6 @@ public class ToDo {
     /** 詳細 */
     @ColumnInfo(name = "detail")
     public String detail;
-    /** メモ */
-    @ColumnInfo(name = "note")
-    public String note;
     /** 表示フラグで{@code false}の場合はTODOリストに表示されない */
     @ColumnInfo(name = "visible")
     public boolean visible;
@@ -62,7 +62,7 @@ public class ToDo {
         this.deadline = MESSAGE_ERROR;
         this.priority = -1;
         this.detail = MESSAGE_ERROR;
-        this.note = MESSAGE_ERROR;
+        this.isPersonal = true;
         this.visible = false;
     }
 
@@ -74,17 +74,16 @@ public class ToDo {
      * @param deadline 期限
      * @param priority 優先度
      * @param detail 詳細
-     * @param note メモ
      * @param visible 表示フラグで{@code false}の場合はTODOリストに表示されない
      */
-    public ToDo(String title, String subject, int estimatedTime, String deadline, Priority priority, String detail, String note, boolean visible) {
+    public ToDo(boolean isPersonal, String title, String subject, int estimatedTime, String deadline, Priority priority, String detail, boolean visible) {
+        this.isPersonal = isPersonal;
         this.title = title;
         this.subject = subject;
         this.estimatedTime = estimatedTime;
         this.deadline = deadline;
         this.priority = toInt(priority);
         this.detail = detail;
-        this.note = note;
         this.visible = visible;
     }
 

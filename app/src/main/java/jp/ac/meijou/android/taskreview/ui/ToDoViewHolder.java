@@ -1,9 +1,12 @@
 package jp.ac.meijou.android.taskreview.ui;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
 import android.os.Handler;
 import android.os.Process;
 import android.os.HandlerThread;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.*;
 
@@ -11,6 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
 import java.util.function.Function;
+
+import jp.ac.meijou.android.taskreview.R;
 import jp.ac.meijou.android.taskreview.databinding.ViewTodoBinding;
 import jp.ac.meijou.android.taskreview.room.ToDo;
 
@@ -21,6 +26,7 @@ import jp.ac.meijou.android.taskreview.room.ToDo;
 public class ToDoViewHolder extends ViewHolder {
     /** 変更内容をDBに反映するスレッド名 */
     private static final String THREAD_NAME = "todo_view_holder-update-thread";
+    private static final int MIN_SWIPE_DISTANCE = 5;
     /** ToDoリストの要素のバインディングクラス */
     private ViewTodoBinding binding;
     /** 変更内容をDBに反映するスレッド */
@@ -65,8 +71,18 @@ public class ToDoViewHolder extends ViewHolder {
      * estimatedTime:予想時間
      * @param toDo DB内のデータを格納したtoDoクラス
      */
-    @SuppressLint("SetTextI18n")
+    @SuppressLint({"SetTextI18n", "ClickableViewAccessibility"})
     public void onBind(ToDo toDo) {
+        var gesture = new GestureDetector(binding.getRoot().getContext(), new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onFling(@NonNull MotionEvent beforeEvent, @NonNull MotionEvent afterEvent, float velocityX, float velocityY) {
+                if(beforeEvent.getX() - afterEvent.getX() > MIN_SWIPE_DISTANCE) {
+
+                }
+                return false;
+            }
+        });
+        binding.getRoot().setOnTouchListener((v, event) -> gesture.onTouchEvent(event));
         binding.titleView.setText(toDo.title);
         binding.subjectView.setText(toDo.subject);
         binding.priorityView.setText(toDo.getPriorityString());
