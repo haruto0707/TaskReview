@@ -16,6 +16,18 @@
         android:theme="@style/Theme.TaskReview"
         tools:targetApi="31">
         <activity
+            android:name=".HistoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SettingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".HistoryView"
+            android:exported="false" />
+        <activity
+            android:name=".SettingView"
+            android:exported="false" />
+        <activity
             android:name=".EvaluateActivity"
             android:exported="false" />
         <activity
