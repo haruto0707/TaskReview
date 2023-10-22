@@ -28,11 +28,16 @@ public class ToDoListAdapter extends ListAdapter<ToDo, ToDoViewHolder> {
     private Function<ToDo, Runnable> hideToDo;
 
     private Function<ToDo, View.OnClickListener> openDetailIntent;
+    private Function<ToDo, View.OnClickListener> openEvaluateIntent;
 
-    public ToDoListAdapter(@NonNull ItemCallback<ToDo> diffCallback, Function<ToDo, Runnable> hideToDo, Function<ToDo, View.OnClickListener> openDetailIntent) {
+    public ToDoListAdapter(@NonNull ItemCallback<ToDo> diffCallback,
+                           Function<ToDo, Runnable> hideToDo,
+                           Function<ToDo, View.OnClickListener> openDetailIntent,
+                           Function<ToDo, View.OnClickListener> openEvaluateIntent) {
         super(diffCallback);
         this.hideToDo = hideToDo;
         this.openDetailIntent = openDetailIntent;
+        this.openEvaluateIntent = openEvaluateIntent;
     }
 
     /**
@@ -53,7 +58,7 @@ public class ToDoListAdapter extends ListAdapter<ToDo, ToDoViewHolder> {
     public ToDoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         var inflater = LayoutInflater.from(parent.getContext());
         var binding = ViewTodoBinding.inflate(inflater, parent, false);
-        viewHolder = new ToDoViewHolder(binding, hideToDo, openDetailIntent);
+        viewHolder = new ToDoViewHolder(binding, hideToDo, openDetailIntent, openEvaluateIntent);
         return viewHolder;
     }
 

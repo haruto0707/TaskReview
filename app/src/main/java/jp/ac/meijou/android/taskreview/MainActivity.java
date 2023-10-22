@@ -2,22 +2,36 @@ package jp.ac.meijou.android.taskreview;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Process;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View.*;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import java.util.function.Function;
 
 import jp.ac.meijou.android.taskreview.databinding.ActivityMainBinding;
+import jp.ac.meijou.android.taskreview.databinding.ViewTodoSwipeBinding;
 import jp.ac.meijou.android.taskreview.room.IToDoDao;
 import jp.ac.meijou.android.taskreview.room.ToDo;
 import jp.ac.meijou.android.taskreview.room.ToDoDatabase;
@@ -87,6 +101,36 @@ public class MainActivity extends AppCompatActivity {
             adapter.submitList(list);
         });
 
+        /*
+        ItemTouchHelper.SimpleCallback callback = new ItemTouchHelper.SimpleCallback(
+                0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+            }
+
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                if(actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    var itemView = viewHolder.itemView;
+                    var binding = ViewTodoSwipeBinding.inflate(getLayoutInflater());
+                    var swipeThreshold = 0.5f;
+                    if(Math.abs(dX) > swipeThreshold * itemView.getWidth()) {
+                        dX = swipeThreshold * itemView.getWidth() * Math.signum(dX / 3);
+                        isCurrentlyActive = false;
+                    }
+                    super.onChildDraw(c, recyclerView, viewHolder, dX / 3, dY, actionState, isCurrentlyActive);
+                }
+            }
+        };
+        ItemTouchHelper helper = new ItemTouchHelper(callback);
+        helper.attachToRecyclerView(recyclerView);
+        */
+
         // RecyclerViewの初期化、設定
         recyclerView.setAdapter(adapter);
         var layoutManager = new LinearLayoutManager(this);
@@ -126,9 +170,21 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra(KEY_IS_PERSONAL, toDo.isPersonal);
             registerLauncher.launch(intent);
         };
+        Function<ToDo, OnClickListener> openEvaluateIntent = toDo -> v -> {
+            var intent = new Intent(this, EvaluateActivity.class);
+            intent.putExtra(KEY_TODO_ID, toDo.id);
+            intent.putExtra(KEY_IS_PERSONAL, toDo.isPersonal);
+            asyncHandler.post(() -> {
+                toDo.visible = false;
+                dao.update(toDo);
+                var list = dao.getVisibilityAll(true);
+                adapter.submitList(list);
+            });
+            registerLauncher.launch(intent);
+        };
 
         // Adapterを初期化する
-        adapter = new ToDoListAdapter(callback, hideToDo, openDetailIntent);
+        adapter = new ToDoListAdapter(callback, hideToDo, openDetailIntent, openEvaluateIntent);
     }
 
     /**

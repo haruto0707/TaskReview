@@ -1,12 +1,14 @@
 package jp.ac.meijou.android.taskreview.ui;
 
+
+import static jp.ac.meijou.android.taskreview.MainActivity.KEY_IS_PERSONAL;
+import static jp.ac.meijou.android.taskreview.MainActivity.KEY_TODO_ID;
 import android.annotation.SuppressLint;
-import android.graphics.Color;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Process;
 import android.os.HandlerThread;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
+import android.util.Log;
 import android.view.View;
 import android.view.View.*;
 
@@ -15,7 +17,7 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
 import java.util.function.Function;
 
-import jp.ac.meijou.android.taskreview.R;
+import jp.ac.meijou.android.taskreview.EvaluateActivity;
 import jp.ac.meijou.android.taskreview.databinding.ViewTodoBinding;
 import jp.ac.meijou.android.taskreview.room.ToDo;
 
@@ -26,7 +28,6 @@ import jp.ac.meijou.android.taskreview.room.ToDo;
 public class ToDoViewHolder extends ViewHolder {
     /** 変更内容をDBに反映するスレッド名 */
     private static final String THREAD_NAME = "todo_view_holder-update-thread";
-    private static final int MIN_SWIPE_DISTANCE = 5;
     /** ToDoリストの要素のバインディングクラス */
     private ViewTodoBinding binding;
     /** 変更内容をDBに反映するスレッド */
@@ -37,6 +38,7 @@ public class ToDoViewHolder extends ViewHolder {
     private Function<ToDo, Runnable> hideToDo;
     /** ToDoの詳細画面を開くためのIntentを生成する関数インターフェース */
     private Function<ToDo, OnClickListener> openDetailIntent;
+    private Function<ToDo, OnClickListener> openEvaluateIntent;
 
     /**
      * ToDoリストの要素を生成する時のコンストラクタ<br>
@@ -44,11 +46,14 @@ public class ToDoViewHolder extends ViewHolder {
      * @param binding ToDoリストの要素のバインディングクラス
      * @param hideToDo ToDoの変更をDB上に変更するRunnableを生成する関数インターフェース
      */
-    public ToDoViewHolder(@NonNull ViewTodoBinding binding, Function<ToDo, Runnable> hideToDo, Function<ToDo, View.OnClickListener> openDetailIntent) {
+    public ToDoViewHolder(@NonNull ViewTodoBinding binding, Function<ToDo, Runnable> hideToDo,
+                          Function<ToDo, View.OnClickListener> openDetailIntent,
+                          Function<ToDo, View.OnClickListener> openEvaluateIntent) {
         this(binding.getRoot());
         this.binding = binding;
         this.hideToDo = hideToDo;
         this.openDetailIntent = openDetailIntent;
+        this.openEvaluateIntent = openEvaluateIntent;
         handlerThread = new HandlerThread(THREAD_NAME, Process.THREAD_PRIORITY_DEFAULT);
         handlerThread.start();
         asyncHandler = new Handler(handlerThread.getLooper());
@@ -73,16 +78,6 @@ public class ToDoViewHolder extends ViewHolder {
      */
     @SuppressLint({"SetTextI18n", "ClickableViewAccessibility"})
     public void onBind(ToDo toDo) {
-        var gesture = new GestureDetector(binding.getRoot().getContext(), new GestureDetector.SimpleOnGestureListener() {
-            @Override
-            public boolean onFling(@NonNull MotionEvent beforeEvent, @NonNull MotionEvent afterEvent, float velocityX, float velocityY) {
-                if(beforeEvent.getX() - afterEvent.getX() > MIN_SWIPE_DISTANCE) {
-
-                }
-                return false;
-            }
-        });
-        binding.getRoot().setOnTouchListener((v, event) -> gesture.onTouchEvent(event));
         binding.titleView.setText(toDo.title);
         binding.subjectView.setText(toDo.subject);
         binding.priorityView.setText(toDo.getPriorityString());
@@ -90,6 +85,8 @@ public class ToDoViewHolder extends ViewHolder {
         binding.deadlineView.setText("期限 : " + toDo.deadline);
         binding.deleteButton
                 .setOnClickListener(v -> asyncHandler.post(hideToDo.apply(toDo)));
+        binding.checkButton
+                .setOnClickListener(openEvaluateIntent.apply(toDo));
         binding.getRoot()
                 .setOnClickListener(openDetailIntent.apply(toDo));
     }

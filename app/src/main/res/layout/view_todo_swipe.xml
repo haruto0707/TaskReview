@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/toDoListSwipe"
+    android:layout_width="wrap_content"
+    android:layout_height="115dp">
+    <Button
+        android:id="@+id/finishButton"
+        android:layout_width="wrap_content"
+        android:layout_height="115dp"
+        android:background="@drawable/ic_launcher_background"
+        android:text="TODO"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/menuDeleteButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/menuDeleteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="115dp"
+        android:background="@drawable/ic_launcher_background"
+        android:text="登録"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/finishButton"
+        app:layout_constraintTop_toTopOf="@id/finishButton" />
+</androidx.constraintlayout.widget.ConstraintLayout>

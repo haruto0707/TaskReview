@@ -10,4 +10,8 @@
     <string name="title_priority_high">高</string>
     <string name="title_deadline">期限</string>
     <string name="title_detail">詳細</string>
+    <string name="text_finish">終了</string>
+    <string name="text_not_finish">未完了</string>
+    <string name="title_evaluation">自己評価</string>
+    <string name="title_comment">コメント</string>
 </resources>
