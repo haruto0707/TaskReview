@@ -39,6 +39,7 @@ public class ToDoViewHolder extends ViewHolder {
     /** ToDoの詳細画面を開くためのIntentを生成する関数インターフェース */
     private Function<ToDo, OnClickListener> openDetailIntent;
     private Function<ToDo, OnClickListener> openEvaluateIntent;
+    private boolean isSafeDelete = false;
 
     /**
      * ToDoリストの要素を生成する時のコンストラクタ<br>
@@ -54,6 +55,7 @@ public class ToDoViewHolder extends ViewHolder {
         this.hideToDo = hideToDo;
         this.openDetailIntent = openDetailIntent;
         this.openEvaluateIntent = openEvaluateIntent;
+        this.isSafeDelete = isSafeDelete;
         handlerThread = new HandlerThread(THREAD_NAME, Process.THREAD_PRIORITY_DEFAULT);
         handlerThread.start();
         asyncHandler = new Handler(handlerThread.getLooper());

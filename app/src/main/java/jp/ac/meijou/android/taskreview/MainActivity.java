@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -31,6 +32,7 @@ import android.widget.FrameLayout;
 import java.util.function.Function;
 
 import jp.ac.meijou.android.taskreview.databinding.ActivityMainBinding;
+import jp.ac.meijou.android.taskreview.databinding.MenuButtonBinding;
 import jp.ac.meijou.android.taskreview.databinding.ViewTodoSwipeBinding;
 import jp.ac.meijou.android.taskreview.room.IToDoDao;
 import jp.ac.meijou.android.taskreview.room.ToDo;
@@ -52,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
     /** ToDoリストを管理するクラス */
     private ToDoListAdapter adapter;
     /** 画面遷移用のクラス */
-    private ActivityResultLauncher<Intent> registerLauncher;
+    private static ActivityResultLauncher<Intent> registerLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -193,6 +195,10 @@ public class MainActivity extends AppCompatActivity {
     private void initMenu() {
         binding.menu.registerButton.setOnClickListener(v -> {
             var intent = new Intent(this, RegisterActivity.class);
+            registerLauncher.launch(intent);
+        });
+        binding.menu.historyButton.setOnClickListener(v -> {
+            var intent = new Intent(this, HistoryActivity.class);
             registerLauncher.launch(intent);
         });
     }

@@ -1,5 +1,6 @@
 package jp.ac.meijou.android.taskreview;
 
+
 import static jp.ac.meijou.android.taskreview.room.ToDo.timeToInt;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,6 +41,7 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         initView();
         initButton();
+        initMenu();
     }
 
     /**
@@ -149,10 +151,17 @@ public class RegisterActivity extends AppCompatActivity {
                 handlerThread.quit();
             });
         });
+    }
+
+    private void initMenu() {
         binding.menu.todoButton.setOnClickListener(v -> {
             var intent = new Intent();
-            // メニュー画面に戻るボタンを押した際に、resultLauncherのメソッドを呼び出す
             setResult(RESULT_OK, intent);
+            finish();
+        });
+        binding.menu.historyButton.setOnClickListener(v -> {
+            var intent = new Intent(this, HistoryActivity.class);
+            startActivity(intent);
             finish();
         });
     }

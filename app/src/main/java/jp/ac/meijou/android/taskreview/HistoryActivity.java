@@ -39,6 +39,7 @@ public class HistoryActivity extends AppCompatActivity {
         binding = ActivityHistoryBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         initView();
+        initMenu();
     }
 
     private void initView() {
@@ -76,13 +77,26 @@ public class HistoryActivity extends AppCompatActivity {
         var itemDecoration = new DividerItemDecoration(this, layoutManager.getOrientation());
         binding.toDoView.addItemDecoration(itemDecoration);
     }
+
+    private void initMenu() {
+        binding.menu.todoButton.setOnClickListener(v -> {
+            var intent = new Intent();
+            setResult(RESULT_OK, intent);
+            finish();
+        });
+        binding.menu.registerButton.setOnClickListener(v -> {
+            var intent = new Intent(this, RegisterActivity.class);
+            registerLauncher.launch(intent);
+            finish();
+        });
+    }
     private void initToDoListAdapter(IToDoDao dao) {
         // ToDoListを管理するクラスを初期化する
         var callback = new ToDoDiffCallback();
 
         // ToDoリストの表示を非表示にする処理をするRunnableを返す関数インターフェースを定義
         Function<ToDo, Runnable> hideToDo = toDo -> () -> {
-            dao.update(toDo);
+            dao.delete(toDo.id);
             var list = dao.getVisibilityAll(false);
             adapter.submitList(list);
         };
