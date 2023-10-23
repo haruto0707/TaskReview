@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Process;
 import android.view.View;
+import android.widget.Toast;
 
 import java.util.function.Function;
 
@@ -32,6 +33,7 @@ public class HistoryActivity extends AppCompatActivity {
     private Handler asyncHandler;
     private ActivityResultLauncher<Intent> registerLauncher;
     private ToDoListAdapter adapter;
+    private MainActivity.SortState sortState = MainActivity.SortState.NONE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +78,29 @@ public class HistoryActivity extends AppCompatActivity {
         binding.toDoView.setLayoutManager(layoutManager);
         var itemDecoration = new DividerItemDecoration(this, layoutManager.getOrientation());
         binding.toDoView.addItemDecoration(itemDecoration);
+
+        binding.sortButton.setOnClickListener(v -> asyncHandler.post(
+                () -> {
+                    if(sortState == MainActivity.SortState.NONE) {
+                        var toast = Toast.makeText(this, "優先度順", Toast.LENGTH_SHORT);
+                        toast.show();
+                        sortState = MainActivity.SortState.PRIORITY;
+                        var list = dao.getPrioritySorted(false);
+                        adapter.submitList(list);
+                    } else if(sortState == MainActivity.SortState.PRIORITY) {
+                        var toast = Toast.makeText(this, "期限順", Toast.LENGTH_SHORT);
+                        toast.show();
+                        sortState = MainActivity.SortState.DEADLINE;
+                        var list = dao.getDeadlineSorted(false);
+                        adapter.submitList(list);
+                    } else {
+                        var toast = Toast.makeText(this, "ID順", Toast.LENGTH_SHORT);
+                        toast.show();
+                        sortState = MainActivity.SortState.NONE;
+                        var list = dao.getVisibilityAll(false);
+                        adapter.submitList(list);
+                    }
+                }));
     }
 
     private void initMenu() {

@@ -14,4 +14,11 @@
     <string name="text_not_finish">未完了</string>
     <string name="title_evaluation">自己評価</string>
     <string name="title_comment">コメント</string>
+    <string name="title_sortSetting">並び順</string>
+    <string-array name="sortSettingItems">
+        <item>優先度順</item>
+        <item>期限順</item>
+        <item>科目順</item>
+        <item>オート</item>
+    </string-array>
 </resources>

@@ -23,11 +23,13 @@ import android.os.Process;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View.*;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import java.util.function.Function;
 
@@ -55,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private ToDoListAdapter adapter;
     /** 画面遷移用のクラス */
     private static ActivityResultLauncher<Intent> registerLauncher;
+    private SortState sortState = SortState.NONE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,6 +150,29 @@ public class MainActivity extends AppCompatActivity {
                     var list = dao.getAll();
                     adapter.submitList(list);
                 }));
+
+        binding.sortButton.setOnClickListener(v -> asyncHandler.post(
+                () -> {
+                    if(sortState == SortState.NONE) {
+                        var toast = Toast.makeText(this, "優先度順", Toast.LENGTH_SHORT);
+                        toast.show();
+                        sortState = SortState.PRIORITY;
+                        var list = dao.getPrioritySorted(true);
+                        adapter.submitList(list);
+                    } else if(sortState == SortState.PRIORITY) {
+                        var toast = Toast.makeText(this, "期限順", Toast.LENGTH_SHORT);
+                        toast.show();
+                        sortState = SortState.DEADLINE;
+                        var list = dao.getDeadlineSorted(true);
+                        adapter.submitList(list);
+                    } else {
+                        var toast = Toast.makeText(this, "ID順", Toast.LENGTH_SHORT);
+                        toast.show();
+                        sortState = SortState.NONE;
+                        var list = dao.getVisibilityAll(true);
+                        adapter.submitList(list);
+                    }
+                }));
     }
 
     /**
@@ -211,5 +237,11 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         handlerThread.quit();
         adapter.finishThread();
+    }
+
+    public enum SortState {
+        NONE,
+        PRIORITY,
+        DEADLINE
     }
 }

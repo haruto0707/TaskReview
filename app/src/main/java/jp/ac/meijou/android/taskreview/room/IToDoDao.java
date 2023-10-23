@@ -45,6 +45,12 @@ public interface IToDoDao {
      */
     @Query("SELECT * FROM todo_list WHERE visible = :visible")
     List<ToDo> getVisibilityAll(boolean visible);
+
+    @Query("SELECT * FROM todo_list WHERE visible = :visible ORDER BY priority DESC")
+    List<ToDo> getPrioritySorted(boolean visible);
+
+    @Query("SELECT * FROM todo_list WHERE visible = :visible ORDER BY deadline ASC")
+    List<ToDo> getDeadlineSorted(boolean visible);
     /**
      * DBに格納されているデータの内、{@code id}と一致するデータを取得する
      * @param id 取得するデータのID
