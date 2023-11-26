@@ -31,11 +31,13 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.Api;
+
+import java.util.Optional;
 import java.util.function.Function;
 
 import jp.ac.meijou.android.taskreview.databinding.ActivityMainBinding;
-import jp.ac.meijou.android.taskreview.databinding.MenuButtonBinding;
-import jp.ac.meijou.android.taskreview.databinding.ViewTodoSwipeBinding;
+import jp.ac.meijou.android.taskreview.firebase.FirebaseManager;
 import jp.ac.meijou.android.taskreview.room.IToDoDao;
 import jp.ac.meijou.android.taskreview.room.ToDo;
 import jp.ac.meijou.android.taskreview.room.ToDoDatabase;
@@ -47,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String KEY_IS_PERSONAL = "todo_is_personal";
     public static final String KEY_TODO_ID = "todo_id";
+    public static final String KEY_FIREBASE_KEY = "todo_firebase_key";
     /** 呼び出すスレッド名 */
     private static final String THREAD_NAME = "main_activity-db-thread";
     /** DBアクセス用のスレッド */
@@ -143,14 +146,6 @@ public class MainActivity extends AppCompatActivity {
         var itemDecoration = new DividerItemDecoration(this, layoutManager.getOrientation());
         recyclerView.addItemDecoration(itemDecoration);
 
-        // 削除ボタンの初期化、設定
-        binding.button2.setOnClickListener(v -> asyncHandler.post(
-                () -> {
-                    dao.deleteAll();
-                    var list = dao.getAll();
-                    adapter.submitList(list);
-                }));
-
         binding.sortButton.setOnClickListener(v -> asyncHandler.post(
                 () -> {
                     if(sortState == SortState.NONE) {
@@ -200,8 +195,13 @@ public class MainActivity extends AppCompatActivity {
         };
         Function<ToDo, OnClickListener> openEvaluateIntent = toDo -> v -> {
             var intent = new Intent(this, EvaluateActivity.class);
-            intent.putExtra(KEY_TODO_ID, toDo.id);
             intent.putExtra(KEY_IS_PERSONAL, toDo.isPersonal);
+            if(toDo.isPersonal) {
+                intent.putExtra(KEY_FIREBASE_KEY, Optional
+                        .ofNullable(toDo.firebaseKey)
+                        .filter(s -> !s.equals(""))
+                        .orElse("ERROR"));
+            }
             asyncHandler.post(() -> {
                 toDo.visible = false;
                 dao.update(toDo);
@@ -219,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
      * 画面下部メニューの初期化を行うメソッド
      */
     private void initMenu() {
-        binding.menu.registerButton.setOnClickListener(v -> {
+        binding.registerButton.setOnClickListener(v -> {
             var intent = new Intent(this, RegisterActivity.class);
             registerLauncher.launch(intent);
         });

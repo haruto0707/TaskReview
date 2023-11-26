@@ -12,11 +12,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Process;
+import android.util.Log;
 import android.view.inputmethod.InputMethodManager;
 
 import java.util.Optional;
 
 import jp.ac.meijou.android.taskreview.databinding.ActivityRegisterBinding;
+import jp.ac.meijou.android.taskreview.firebase.FirebaseManager;
+import jp.ac.meijou.android.taskreview.firebase.FirebaseToDo;
 import jp.ac.meijou.android.taskreview.room.ToDo;
 import jp.ac.meijou.android.taskreview.room.ToDo.Priority;
 import jp.ac.meijou.android.taskreview.room.ToDoDatabase;
@@ -40,8 +43,8 @@ public class RegisterActivity extends AppCompatActivity {
         binding = ActivityRegisterBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         initView();
-        initButton();
-        initMenu();
+        initRegisterButton();
+        initReturnButton();
     }
 
     /**
@@ -111,11 +114,11 @@ public class RegisterActivity extends AppCompatActivity {
      * {@code registerButton} ボタンを押した際に、データベースにデータを登録する<br>
      * {@code todoButton} メニュー画面に戻るボタンを押した際に、メニュー画面に戻る<br>
      */
-    private void initButton() {
+    private void initRegisterButton() {
+        binding.registerButton.setText(id == -1 ? "登録" : "更新");
         // DBアクセス用のDAOを初期化する、データベース内のデータを取得
         var db = ToDoDatabase.getInstance(this);
         var dao = db.toDoDao();
-
         // 登録ボタン
         binding.registerButton.setOnClickListener(v -> {
             // DBアクセス用のスレッドを初期化、開始する
@@ -135,6 +138,7 @@ public class RegisterActivity extends AppCompatActivity {
                 if(id == -1) {
                     // ToDoリストのデータを作成する
                     var toDo = new ToDo(true, content, subject, estimatedTime, deadline, priority, detail, true);
+                    FirebaseManager.sendTo(toDo);
                     dao.insert(toDo);
                 } else {
                     // ToDoリストのデータを更新する
@@ -145,6 +149,8 @@ public class RegisterActivity extends AppCompatActivity {
                     toDo.deadline = deadline;
                     toDo.detail = detail;
                     toDo.priority = toDo.toInt(priority);
+                    toDo.visible = true;
+                    FirebaseManager.sendTo(toDo);
                     dao.update(toDo);
                 }
                 // DBアクセス用スレッドを終了する
@@ -153,15 +159,10 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
-    private void initMenu() {
-        binding.menu.todoButton.setOnClickListener(v -> {
+    private void initReturnButton() {
+        binding.returnButton.setOnClickListener(v -> {
             var intent = new Intent();
             setResult(RESULT_OK, intent);
-            finish();
-        });
-        binding.menu.historyButton.setOnClickListener(v -> {
-            var intent = new Intent(this, HistoryActivity.class);
-            startActivity(intent);
             finish();
         });
     }

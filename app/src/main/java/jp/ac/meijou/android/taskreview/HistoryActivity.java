@@ -109,11 +109,6 @@ public class HistoryActivity extends AppCompatActivity {
             setResult(RESULT_OK, intent);
             finish();
         });
-        binding.menu.registerButton.setOnClickListener(v -> {
-            var intent = new Intent(this, RegisterActivity.class);
-            registerLauncher.launch(intent);
-            finish();
-        });
     }
     private void initToDoListAdapter(IToDoDao dao) {
         // ToDoListを管理するクラスを初期化する

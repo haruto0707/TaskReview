@@ -9,35 +9,24 @@
 
     <Button
         android:id="@+id/todoButton"
-        android:layout_width="135dp"
+        android:layout_width="205dp"
         android:layout_height="80dp"
         android:background="@drawable/ic_launcher_background"
         android:text="TODO"
         android:textSize="20sp"
         app:layout_constraintEnd_toStartOf="@+id/historyButton"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        tools:layout_editor_absoluteY="0dp" />
 
     <Button
         android:id="@+id/historyButton"
-        android:layout_width="135dp"
+        android:layout_width="205dp"
         android:layout_height="80dp"
         android:background="@drawable/ic_launcher_background"
         android:text="履歴"
         android:textSize="20sp"
         app:layout_constraintStart_toEndOf="@+id/todoButton"
-        app:layout_constraintEnd_toStartOf="@+id/registerButton"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/registerButton"
-        android:layout_width="135dp"
-        android:layout_height="80dp"
-        android:background="@drawable/ic_launcher_background"
-        android:text="登録"
-        android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/historyButton"
         app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

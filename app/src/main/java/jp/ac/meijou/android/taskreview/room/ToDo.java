@@ -7,6 +7,8 @@ import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import java.util.Objects;
+
 
 /**
  * RoomによるDBのデータを格納するクラスの定義<br>
@@ -49,6 +51,9 @@ public class ToDo {
     @ColumnInfo(name = "visible")
     public boolean visible;
 
+    @ColumnInfo(name = "firebase_key")
+    public String firebaseKey;
+
     /**
      * デフォルトコンストラクタ<br>
      * すべてのフィールドに{@link #MESSAGE_ERROR}を設定する。
@@ -64,6 +69,7 @@ public class ToDo {
         this.detail = MESSAGE_ERROR;
         this.isPersonal = true;
         this.visible = false;
+        this.firebaseKey = MESSAGE_ERROR;
     }
 
     /**
@@ -85,6 +91,19 @@ public class ToDo {
         this.priority = toInt(priority);
         this.detail = detail;
         this.visible = visible;
+        this.firebaseKey = MESSAGE_ERROR;
+    }
+
+    public ToDo(int id, String title, String subject, int estimatedTime, String deadline, Priority priority, String firebaseKey, boolean visible) {
+        this.id = id;
+        this.isPersonal = false;
+        this.title = title;
+        this.subject = subject;
+        this.estimatedTime = estimatedTime;
+        this.deadline = deadline;
+        this.priority = toInt(priority);
+        this.visible = visible;
+        this.firebaseKey = firebaseKey;
     }
 
     /**
@@ -157,10 +176,10 @@ public class ToDo {
     public String getStringTime(TimeFormat format) {
         var hour = estimatedTime / 60;
         var minute = estimatedTime % 60;
-        switch(format) {
-            case LABELED: return String.format(TIME_FORMAT_LABELED, hour, minute);
-            default: return String.format(TIME_FORMAT_DEFAULT, hour, minute);
+        if (Objects.requireNonNull(format) == TimeFormat.LABELED) {
+            return String.format(TIME_FORMAT_LABELED, hour, minute);
         }
+        return String.format(TIME_FORMAT_DEFAULT, hour, minute);
     }
 
     /**
@@ -175,6 +194,14 @@ public class ToDo {
             case 1: return Integer.parseInt(dateTime[0]);
             case 2: return Integer.parseInt(dateTime[0]) * 60 + Integer.parseInt(dateTime[1]);
             default: return -1;  // エラーの場合は-1を返す
+        }
+    }
+
+    public static Priority parsePriority(int priority) {
+        switch (priority) {
+            case 1: return Priority.MEDIUM;
+            case 2: return Priority.HIGH;
+            default: return Priority.LOW;
         }
     }
 }

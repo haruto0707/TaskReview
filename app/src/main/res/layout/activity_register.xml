@@ -6,19 +6,11 @@
     android:layout_height="match_parent"
     tools:context=".RegisterActivity">
 
-    <include
-        android:id="@+id/menu"
-        layout="@layout/menu_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
     <ScrollView
+        android:id="@+id/scrollView2"
         android:layout_width="match_parent"
-        android:fillViewport="true"
-        android:layout_height="820dp"
+        android:layout_height="700dp"
+        android:layout_marginTop="60dp"
         android:isScrollContainer="false"
         app:layout_constraintTop_toTopOf="parent"
         tools:layout_editor_absoluteX="1dp">
@@ -28,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="true"
-            android:focusableInTouchMode="true" >
+            android:focusableInTouchMode="true">
 
             <TextView
                 android:id="@+id/contentTitleView"
@@ -139,17 +131,6 @@
                 app:layout_constraintStart_toStartOf="@id/radio_group"
                 app:layout_constraintTop_toTopOf="@+id/deadlineTitleView" />
 
-            <Button
-                android:id="@+id/register_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="50dp"
-                android:text="@string/title_register"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.498"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/deadlineTitleView" />
-
             <RadioGroup
                 android:id="@+id/radio_group"
                 android:layout_width="wrap_content"
@@ -194,5 +175,39 @@
                 app:layout_constraintTop_toBottomOf="@+id/detailTitleView" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
+
+    <Button
+        android:id="@+id/register_button"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="@drawable/ic_launcher_background"
+        android:text="@string/title_register"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="MissingConstraints" />
+
+    <ImageButton
+        android:id="@+id/returnButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_revert" />
+
+    <ToggleButton
+        android:id="@+id/shareButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:text="ToggleButton"
+        android:textOff="共有しない"
+        android:textOn="共有する"
+        app:layout_constraintBottom_toBottomOf="@+id/returnButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/returnButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

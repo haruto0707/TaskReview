@@ -59,6 +59,9 @@ public interface IToDoDao {
      */
     @Query("SELECT * FROM todo_list WHERE id = :id AND is_personal = :isPersonal")
     ToDo get(int id, boolean isPersonal);
+
+    @Query("SELECT * FROM todo_list WHERE firebase_key = :firebaseKey")
+    ToDo get(String firebaseKey);
     /**
      * DBにデータを追加する
      * @param todo 追加するデータ
