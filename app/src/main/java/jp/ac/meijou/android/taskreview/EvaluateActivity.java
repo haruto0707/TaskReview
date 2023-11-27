@@ -7,8 +7,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Process;
+import android.util.Log;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import jp.ac.meijou.android.taskreview.databinding.ActivityEvaluateBinding;
 import jp.ac.meijou.android.taskreview.firebase.FirebaseManager;
@@ -29,20 +32,22 @@ public class EvaluateActivity extends AppCompatActivity {
     }
 
     private void initView() {
-        isPersonal =getIntent().getBooleanExtra(MainActivity.KEY_IS_PERSONAL, true);
+        isPersonal = getIntent().getBooleanExtra(MainActivity.KEY_IS_PERSONAL, true);
         binding.toDoFinishButton.setChecked(true);
         binding.evaluateFinishButton.setOnClickListener(v -> {
             if(!isPersonal) {
                 var firebaseKey = getIntent().getStringExtra(MainActivity.KEY_FIREBASE_KEY);
                 var isFinished = binding.toDoFinishButton.isChecked();
                 var evaluation = (int) binding.evaluationBar.getRating();
-                var comment = binding.commentText.getText().toString();
                 // 送信系の処理は以下に記述
-                FirebaseManager.sendTo(new ToDoEvaluation(firebaseKey, isFinished, evaluation));
+                CompletableFuture<Void> future = FirebaseManager.sendTo(
+                        new ToDoEvaluation(firebaseKey, isFinished, evaluation));
+                future.thenRun(() -> {
+                    var intent = new Intent();
+                    setResult(RESULT_OK, intent);
+                    finish();
+                });
             }
-            var intent = new Intent();
-            setResult(RESULT_OK, intent);
-            finish();
         });
     }
 }

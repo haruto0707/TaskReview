@@ -193,15 +193,15 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra(KEY_IS_PERSONAL, toDo.isPersonal);
             registerLauncher.launch(intent);
         };
+
         Function<ToDo, OnClickListener> openEvaluateIntent = toDo -> v -> {
             var intent = new Intent(this, EvaluateActivity.class);
-            intent.putExtra(KEY_IS_PERSONAL, toDo.isPersonal);
-            if(toDo.isPersonal) {
-                intent.putExtra(KEY_FIREBASE_KEY, Optional
-                        .ofNullable(toDo.firebaseKey)
-                        .filter(s -> !s.equals(""))
-                        .orElse("ERROR"));
-            }
+            intent.putExtra(KEY_IS_PERSONAL, toDo.firebaseKey.isEmpty() ||
+                    toDo.firebaseKey.equals(ToDo.MESSAGE_ERROR));
+            intent.putExtra(KEY_FIREBASE_KEY, Optional
+                    .ofNullable(toDo.firebaseKey)
+                    .filter(s -> !s.isEmpty())
+                    .orElse("ERROR"));
             asyncHandler.post(() -> {
                 toDo.visible = false;
                 dao.update(toDo);

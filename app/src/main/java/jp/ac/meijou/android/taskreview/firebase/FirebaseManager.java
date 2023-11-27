@@ -32,9 +32,13 @@ public class FirebaseManager {
     private static final FirebaseDatabase database = FirebaseDatabase.getInstance();
     private static final DatabaseReference ref = database.getReference();
 
-    public static void sendTo(ToDoEvaluation value) {
+    public static CompletableFuture<Void> sendTo(ToDoEvaluation value) {
+        var future = new CompletableFuture<Void>();
         DatabaseReference newRef = ref.child(EVAL_PATH);
-        newRef.push().setValue(value);
+        newRef.push().setValue(value, (error, ref) -> {
+            future.complete(null);
+        });
+        return future;
     }
     public static CompletableFuture<String> sendTo(ToDo value) {
         DatabaseReference newRef = ref.child(TODO_PATH);

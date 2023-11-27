@@ -16,6 +16,8 @@ import android.util.Log;
 import android.view.inputmethod.InputMethodManager;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import jp.ac.meijou.android.taskreview.databinding.ActivityRegisterBinding;
 import jp.ac.meijou.android.taskreview.firebase.FirebaseManager;
@@ -135,14 +137,15 @@ public class RegisterActivity extends AppCompatActivity {
             var priority = getPriority();
             // DBアクセス用スレッド内でデータベースにデータを挿入する
             asyncHandler.post(() -> {
+                CompletableFuture<String> future = null;
+                ToDo toDo;
                 if(id == -1) {
                     // ToDoリストのデータを作成する
-                    var toDo = new ToDo(true, content, subject, estimatedTime, deadline, priority, detail, true);
-                    FirebaseManager.sendTo(toDo);
-                    dao.insert(toDo);
+                    toDo = new ToDo(true, content, subject, estimatedTime, deadline, priority, detail, true);
+                    if(binding.shareButton.isChecked()) future = FirebaseManager.sendTo(toDo);
                 } else {
                     // ToDoリストのデータを更新する
-                    var toDo = dao.get(id, isPersonal);
+                    toDo = dao.get(id, isPersonal);
                     toDo.title = content;
                     toDo.subject = subject;
                     toDo.estimatedTime = estimatedTime;
@@ -150,11 +153,37 @@ public class RegisterActivity extends AppCompatActivity {
                     toDo.detail = detail;
                     toDo.priority = toDo.toInt(priority);
                     toDo.visible = true;
-                    FirebaseManager.sendTo(toDo);
-                    dao.update(toDo);
+                    if(binding.shareButton.isChecked()) future = FirebaseManager.sendTo(toDo);
                 }
-                // DBアクセス用スレッドを終了する
-                handlerThread.quit();
+                ToDo finalToDo = toDo;
+                Optional.ofNullable(future).ifPresentOrElse(f -> {
+                    try {
+                        finalToDo.firebaseKey = f.get();
+                    } catch (ExecutionException | InterruptedException ignored) {}
+                    if(id == -1) {
+                        dao.insert(finalToDo);
+                    } else {
+                        dao.update(finalToDo);
+                    }
+                    handlerThread.quitSafely();
+                    runOnUiThread(() -> {
+                        var intent = new Intent();
+                        setResult(RESULT_OK, intent);
+                        finish();
+                    });
+                }, () -> {
+                    if(id == -1) {
+                        dao.insert(toDo);
+                    } else {
+                        dao.update(toDo);
+                    }
+                    handlerThread.quitSafely();
+                    runOnUiThread(() -> {
+                        var intent = new Intent();
+                        setResult(RESULT_OK, intent);
+                        finish();
+                    });
+                });
             });
         });
     }

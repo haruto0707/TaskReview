@@ -1,5 +1,6 @@
 package jp.ac.meijou.android.taskreview;
 
+import static jp.ac.meijou.android.taskreview.MainActivity.KEY_FIREBASE_KEY;
 import static jp.ac.meijou.android.taskreview.MainActivity.KEY_IS_PERSONAL;
 import static jp.ac.meijou.android.taskreview.MainActivity.KEY_TODO_ID;
 
@@ -14,9 +15,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Process;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 import jp.ac.meijou.android.taskreview.databinding.ActivityHistoryBinding;
@@ -131,11 +134,16 @@ public class HistoryActivity extends AppCompatActivity {
 
         Function<ToDo, View.OnClickListener> openEvaluateIntent = toDo -> v -> {
             var intent = new Intent(this, EvaluateActivity.class);
-            intent.putExtra(KEY_TODO_ID, toDo.id);
-            intent.putExtra(KEY_IS_PERSONAL, toDo.isPersonal);
+            intent.putExtra(KEY_IS_PERSONAL, toDo.firebaseKey.isEmpty() ||
+                    toDo.firebaseKey.equals(ToDo.MESSAGE_ERROR));
+            intent.putExtra(KEY_FIREBASE_KEY, Optional
+                    .ofNullable(toDo.firebaseKey)
+                    .filter(s -> !s.isEmpty())
+                    .orElse("ERROR"));
             asyncHandler.post(() -> {
+                toDo.visible = false;
                 dao.update(toDo);
-                var list = dao.getVisibilityAll(false);
+                var list = dao.getVisibilityAll(true);
                 adapter.submitList(list);
             });
             registerLauncher.launch(intent);
