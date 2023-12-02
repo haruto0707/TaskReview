@@ -118,7 +118,6 @@ public class FirebaseManager {
         var subjectList = new CompletableFuture<List<String>>();
         var newRef = ref.child("subjects");
         for(var key : keys) {
-            Log.d("sakamaki", key);
             newRef = newRef.child(key);
         }
         newRef.addListenerForSingleValueEvent(new ValueEventListener() {

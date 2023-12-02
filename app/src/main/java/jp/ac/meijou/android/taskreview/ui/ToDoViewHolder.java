@@ -92,8 +92,11 @@ public class ToDoViewHolder extends ViewHolder {
         binding.priorityView.setText(toDo.getPriorityString());
         binding.estimatedTimeView.setText(toDo.getStringTime(ToDo.TimeFormat.LABELED));
         binding.deadlineView.setText("期限 : " + toDo.deadline);
-        binding.deadlineView.setTextColor(
-                LocalDate.now().isAfter(LocalDate.parse(toDo.deadline)) ? Color.RED : Color.BLACK);
+        if(ToDo.checkIsValidString(toDo.deadline)) {
+            binding.deadlineView.setTextColor(
+                    LocalDate.now().isAfter(LocalDate.parse(toDo.deadline)) ?
+                            Color.RED : Color.BLACK);
+        }
         binding.getRoot()
                 .setOnClickListener(openDetailIntent.apply(toDo));
         if(!hideButton) {

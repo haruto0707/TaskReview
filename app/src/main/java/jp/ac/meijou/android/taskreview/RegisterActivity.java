@@ -249,6 +249,7 @@ public class RegisterActivity extends AppCompatActivity {
         if(checkIsValidString(firebaseKey)) {
             binding.importButton.setVisibility(android.view.View.GONE);
             binding.shareButton.setVisibility(android.view.View.GONE);
+
         }
         if(id != -1) {
             binding.importButton.setVisibility(android.view.View.GONE);
@@ -283,7 +284,6 @@ public class RegisterActivity extends AppCompatActivity {
             public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
                 if(position == 0) return;
                 var department = parent.getItemAtPosition(position).toString();
-                Log.d("sakamaki", "pass");
                 FirebaseManager.getKeyFromName(department, faculty)
                         .thenAccept(key -> initSubjectSpinner(faculty, key));
             }
