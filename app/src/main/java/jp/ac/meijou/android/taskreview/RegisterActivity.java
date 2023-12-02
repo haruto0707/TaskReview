@@ -18,8 +18,14 @@ import android.os.HandlerThread;
 import android.os.Process;
 import android.util.Log;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -55,7 +61,9 @@ public class RegisterActivity extends AppCompatActivity {
         initRegisterButton();
         initRevertButton();
         initImportButton();
-        Log.d("sakamaki", String.valueOf(firebaseKey));
+        initFacultySpinner();
+        initDepartmentSpinner(MESSAGE_ERROR);
+        initSubjectSpinner(MESSAGE_ERROR, MESSAGE_ERROR);
     }
     /**
      * ToDoリストのデータからTextViewに文字列をセットするメソッド
@@ -250,6 +258,69 @@ public class RegisterActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+    }
+
+    private void initFacultySpinner() {
+        initSpinner(binding.facultySpinner, "学部を選択", false);
+        // 選択が変更されたら学科を取得する
+        binding.facultySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
+                if(position == 0) return;
+                var faculty = parent.getItemAtPosition(position).toString();
+                FirebaseManager.getKeyFromName(faculty)
+                        .thenAccept(key -> initDepartmentSpinner(key));
+            }
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
+    }
+
+    private void initDepartmentSpinner(String faculty) {
+        initSpinner(binding.departmentSpinner, "学科を選択", false, faculty);
+        binding.departmentSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
+                if(position == 0) return;
+                var department = parent.getItemAtPosition(position).toString();
+                Log.d("sakamaki", "pass");
+                FirebaseManager.getKeyFromName(department, faculty)
+                        .thenAccept(key -> initSubjectSpinner(faculty, key));
+            }
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
+    }
+
+    private void initSubjectSpinner(String faculty, String department) {
+        initSpinner(binding.subjectSpinner, "科目を選択", true, faculty, department);
+        binding.subjectSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
+                if(position == 0) return;
+                var subject = parent.getItemAtPosition(position).toString();
+                binding.subjectEditText.setText(subject);
+            }
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
+    }
+
+    private void initSpinner(Spinner spinner, String defaultValue, boolean isSubject, String... keys) {
+        var adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapter.add(defaultValue);
+        FirebaseManager.getSubject(isSubject, keys).thenAccept(s -> adapter.addAll(sortElements(s)));
+        spinner.setAdapter(adapter);
+    }
+
+    private List<String> sortElements(List<String> list) {
+        List<String> newList = new ArrayList<>(list);
+        if(newList.contains("その他")) {
+            newList.remove("その他");
+            newList.add("その他");
+        }
+        return newList;
     }
 
 

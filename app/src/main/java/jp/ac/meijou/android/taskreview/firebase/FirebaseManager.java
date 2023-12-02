@@ -1,5 +1,6 @@
 package jp.ac.meijou.android.taskreview.firebase;
 
+import static jp.ac.meijou.android.taskreview.room.ToDo.MESSAGE_ERROR;
 import static jp.ac.meijou.android.taskreview.room.ToDo.parsePriority;
 
 import android.os.Handler;
@@ -113,10 +114,11 @@ public class FirebaseManager {
     }
 
 
-    public static CompletableFuture<List<String>> getSubject(String... keys) {
+    public static CompletableFuture<List<String>> getSubject(boolean isSubject, String... keys) {
         var subjectList = new CompletableFuture<List<String>>();
         var newRef = ref.child("subjects");
         for(var key : keys) {
+            Log.d("sakamaki", key);
             newRef = newRef.child(key);
         }
         newRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -124,8 +126,10 @@ public class FirebaseManager {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 var list = new ArrayList<String>();
                 for(var child : snapshot.getChildren()) {
-                    var value = child.child("name").getValue(String.class);
-                    if(value != null) list.add(value);
+                    String value;
+                    if(isSubject) value = child.getKey();
+                    else value = child.child("name").getValue(String.class);
+                    if(value != null && !value.equals("name")) list.add(value);
                 }
                 subjectList.complete(list);
             }
@@ -143,15 +147,19 @@ public class FirebaseManager {
         for(var child : keys) {
             newRef = newRef.child(child);
         }
-        ref.child("subjects")
-                .orderByChild("name")
-                .equalTo(name)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
+        newRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        for(var child : snapshot.getChildren()) {
-                            key.complete(child.getKey());
+                        boolean found = false;
+                        for(var value : snapshot.getChildren()) {
+                            var val = value.child("name").getValue(String.class);
+                            if(val.equals(name)) {
+                                key.complete(value.getKey());
+                                found = true;
+                                break;
+                            }
                         }
+                        if(!found) key.complete(MESSAGE_ERROR);
                     }
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {

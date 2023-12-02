@@ -74,7 +74,7 @@
                 android:text="@string/title_subject"
                 android:textSize="20sp"
                 app:layout_constraintStart_toStartOf="@+id/contentTitleView"
-                app:layout_constraintTop_toBottomOf="@+id/detailEditText" />
+                app:layout_constraintTop_toBottomOf="@+id/subjectSpinner" />
 
             <TextView
                 android:id="@+id/priorityTitleView"
@@ -183,6 +183,31 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+
+            <Spinner
+                android:id="@+id/facultySpinner"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                app:layout_constraintStart_toStartOf="@+id/detailEditText"
+                app:layout_constraintTop_toBottomOf="@+id/detailEditText" />
+
+            <Spinner
+                android:id="@+id/departmentSpinner"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30dp"
+                app:layout_constraintBottom_toBottomOf="@+id/facultySpinner"
+                app:layout_constraintStart_toEndOf="@+id/facultySpinner"
+                app:layout_constraintTop_toTopOf="@+id/facultySpinner" />
+
+            <Spinner
+                android:id="@+id/subjectSpinner"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                app:layout_constraintStart_toStartOf="@+id/facultySpinner"
+                app:layout_constraintTop_toBottomOf="@+id/facultySpinner" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 

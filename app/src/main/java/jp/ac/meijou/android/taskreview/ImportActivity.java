@@ -96,7 +96,7 @@ public class ImportActivity extends AppCompatActivity {
         handlerThread.start();
         asyncHandler = new Handler(handlerThread.getLooper());
         asyncHandler.post(() -> {
-            var future = FirebaseManager.getSubject(keys);
+            var future = FirebaseManager.getSubject(true, keys);
             try {
                 var list = future.get();
                 Optional.ofNullable(list).ifPresent(adapter::addAll);
