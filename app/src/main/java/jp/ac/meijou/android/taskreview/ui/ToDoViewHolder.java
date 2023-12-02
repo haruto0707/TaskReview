@@ -5,6 +5,7 @@ import static jp.ac.meijou.android.taskreview.MainActivity.KEY_IS_PERSONAL;
 import static jp.ac.meijou.android.taskreview.MainActivity.KEY_TODO_ID;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Handler;
 import android.os.Process;
 import android.os.HandlerThread;
@@ -15,6 +16,7 @@ import android.view.View.*;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
+import java.time.LocalDate;
 import java.util.function.Function;
 
 import jp.ac.meijou.android.taskreview.EvaluateActivity;
@@ -90,6 +92,8 @@ public class ToDoViewHolder extends ViewHolder {
         binding.priorityView.setText(toDo.getPriorityString());
         binding.estimatedTimeView.setText(toDo.getStringTime(ToDo.TimeFormat.LABELED));
         binding.deadlineView.setText("期限 : " + toDo.deadline);
+        binding.deadlineView.setTextColor(
+                LocalDate.now().isAfter(LocalDate.parse(toDo.deadline)) ? Color.RED : Color.BLACK);
         binding.getRoot()
                 .setOnClickListener(openDetailIntent.apply(toDo));
         if(!hideButton) {

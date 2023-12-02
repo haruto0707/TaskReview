@@ -129,7 +129,7 @@ public class RegisterActivity extends AppCompatActivity {
                         runOnUiThread(() -> {
                             binding.toDoEditText.setText(firebaseToDo.title);
                             binding.subjectEditText.setText(firebaseToDo.subject);
-                            binding.editTextNumber.setText(String.valueOf(firebaseToDo.estimatedTime));
+                            binding.editTextNumber.setText(String.valueOf(firebaseToDo.getStringTime(ToDo.TimeFormat.DEFAULT)));
                             binding.deadlineEditNumber.setText(firebaseToDo.deadline);
                             if(firebaseToDo.priority == 0) {
                                 binding.radioLow.setChecked(true);

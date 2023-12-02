@@ -35,7 +35,7 @@ import jp.ac.meijou.android.taskreview.ui.ToDoListAdapter;
 
 public class ImportActivity extends AppCompatActivity {
     private ActivityImportBinding binding;
-    private static final String THREAD_NAME = "import_activity--thread";
+    private static final String THREAD_NAME = "import_activity-thread";
 
     private HandlerThread handlerThread;
     private Handler asyncHandler;
