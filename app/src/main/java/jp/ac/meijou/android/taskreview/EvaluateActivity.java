@@ -49,5 +49,10 @@ public class EvaluateActivity extends AppCompatActivity {
                 });
             }
         });
+        binding.revertButton.setOnClickListener(v -> {
+            var intent = new Intent();
+            setResult(RESULT_OK, intent);
+            finish();
+        });
     }
 }

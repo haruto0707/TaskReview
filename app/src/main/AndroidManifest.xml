@@ -16,6 +16,9 @@
         android:theme="@style/Theme.TaskReview"
         tools:targetApi="31">
         <activity
+            android:name=".ImportActivity"
+            android:exported="false" />
+        <activity
             android:name=".HistoryActivity"
             android:exported="false" />
         <activity

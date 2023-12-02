@@ -18,11 +18,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import jp.ac.meijou.android.taskreview.room.ToDo;
 
@@ -48,19 +50,51 @@ public class FirebaseManager {
         });
         return key;
     }
-    public static ToDo[] getFromSubject(String subject) {
-        var toDoList = new ArrayList<ToDo>();
+
+    public static CompletableFuture<List<ToDo>> getAll() {
+        var toDoList = new CompletableFuture<List<ToDo>>();
         ref.child(TODO_PATH)
-                .orderByChild("subject")
-                .equalTo(subject)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        var futures = new ArrayList<CompletableFuture<Void>>();
+                        var list = Collections.synchronizedList(new ArrayList<ToDo>());
                         for(var child : snapshot.getChildren()) {
                             var firebaseToDo = child.getValue(FirebaseToDo.class);
                             if(firebaseToDo != null) {
-                                toDoList.add(parseToDo(firebaseToDo, child.getKey()));
+                                var future = CompletableFuture
+                                        .completedFuture(firebaseToDo)
+                                        .thenAccept(f -> {
+                                            var key = child.getKey();
+                                            var toDo = parseToDo(f, key);
+                                            list.add(toDo);
+                                        });
+                                futures.add(future);
                             }
+                        }
+                        CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
+                                .thenRun(() -> {
+                                    toDoList.complete(list);
+                                });
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.d("FirebaseManager", "onCancelled: " + error.getMessage());
+                    }
+                });
+        return toDoList;
+    }
+    public static CompletableFuture<ToDo> getFromKey(String key) {
+        var firebaseToDo = new CompletableFuture<ToDo>();
+        ref.child(TODO_PATH)
+                .child(key)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        var value = snapshot.getValue(FirebaseToDo.class);
+                        if(value != null) {
+                            var toDo = parseToDo(value, key);
+                            firebaseToDo.complete(toDo);
                         }
                     }
 
@@ -69,33 +103,15 @@ public class FirebaseManager {
                         Log.d("FirebaseManager", "onCancelled: " + error.getMessage());
                     }
                 });
-        return toDoList.toArray(new ToDo[0]);
+        return firebaseToDo;
     }
-    private static ToDo parseToDo(FirebaseToDo firebaseToDo, String key) {
-        if(getIdFromKey(key) == -1) return null;
-        return new ToDo(getIdFromKey(key), firebaseToDo.title, firebaseToDo.subject,
+    public static ToDo parseToDo(FirebaseToDo firebaseToDo, String key) {
+
+        return new ToDo(key, firebaseToDo.title, firebaseToDo.subject,
                 firebaseToDo.estimatedTime, firebaseToDo.deadline,
                 parsePriority(firebaseToDo.priority), "", true);
     }
 
-    private static int getIdFromKey(String key) {
-        AtomicInteger id = new AtomicInteger(-1);
-        ref.child("ids")
-                .child(key)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        id.set(Optional
-                                .ofNullable(snapshot.getValue(Integer.class))
-                                .orElse(-1));
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError ignored) {
-                    }
-                });
-        return id.get();
-    }
 
     public static CompletableFuture<List<String>> getSubject(String... keys) {
         var subjectList = new CompletableFuture<List<String>>();
@@ -108,7 +124,8 @@ public class FirebaseManager {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 var list = new ArrayList<String>();
                 for(var child : snapshot.getChildren()) {
-                    list.add(Objects.requireNonNull(child.getValue(String.class)));
+                    var value = child.child("name").getValue(String.class);
+                    if(value != null) list.add(value);
                 }
                 subjectList.complete(list);
             }
@@ -118,5 +135,29 @@ public class FirebaseManager {
             }
         });
         return subjectList;
+    }
+
+    public static CompletableFuture<String> getKeyFromName(String name, String... keys) {
+        var key = new CompletableFuture<String>();
+        var newRef = ref.child("subjects");
+        for(var child : keys) {
+            newRef = newRef.child(child);
+        }
+        ref.child("subjects")
+                .orderByChild("name")
+                .equalTo(name)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for(var child : snapshot.getChildren()) {
+                            key.complete(child.getKey());
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.d("FirebaseManager", "onCancelled: " + error.getMessage());
+                    }
+                });
+        return key;
     }
 }

@@ -9,7 +9,7 @@
 
     <Button
         android:id="@+id/todoButton"
-        android:layout_width="205dp"
+        android:layout_width="203dp"
         android:layout_height="80dp"
         android:background="@drawable/ic_launcher_background"
         android:text="TODO"
@@ -20,7 +20,7 @@
 
     <Button
         android:id="@+id/historyButton"
-        android:layout_width="205dp"
+        android:layout_width="203dp"
         android:layout_height="80dp"
         android:background="@drawable/ic_launcher_background"
         android:text="履歴"

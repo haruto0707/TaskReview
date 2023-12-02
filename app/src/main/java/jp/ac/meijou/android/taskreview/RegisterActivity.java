@@ -1,8 +1,12 @@
 package jp.ac.meijou.android.taskreview;
 
 
+import static jp.ac.meijou.android.taskreview.room.ToDo.MESSAGE_ERROR;
+import static jp.ac.meijou.android.taskreview.room.ToDo.checkIsValidString;
 import static jp.ac.meijou.android.taskreview.room.ToDo.timeToInt;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
@@ -14,6 +18,7 @@ import android.os.HandlerThread;
 import android.os.Process;
 import android.util.Log;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Toast;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -39,6 +44,8 @@ public class RegisterActivity extends AppCompatActivity {
      */
     private int id;
     private boolean isPersonal;
+    private String firebaseKey;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,9 +53,10 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         initView();
         initRegisterButton();
-        initReturnButton();
+        initRevertButton();
+        initImportButton();
+        Log.d("sakamaki", String.valueOf(firebaseKey));
     }
-
     /**
      * ToDoリストのデータからTextViewに文字列をセットするメソッド
      */
@@ -78,12 +86,12 @@ public class RegisterActivity extends AppCompatActivity {
      */
     private void initViewText() {
         id = getIntent().getIntExtra(MainActivity.KEY_TODO_ID, -1);
-        isPersonal =getIntent().getBooleanExtra(MainActivity.KEY_IS_PERSONAL, true);
+        firebaseKey = getIntent().getStringExtra(MainActivity.KEY_FIREBASE_KEY);
+        isPersonal = getIntent().getBooleanExtra(MainActivity.KEY_IS_PERSONAL, true);
         if(id != -1) {
             // DBアクセス用のDAOを初期化する、データベース内のデータを取得
             var db = ToDoDatabase.getInstance(this);
             var dao = db.toDoDao();
-
             // DBアクセス用のスレッドを初期化、開始する
             var handlerThread = new HandlerThread(THREAD_NAME, Process.THREAD_PRIORITY_DEFAULT);
             handlerThread.start();
@@ -107,6 +115,33 @@ public class RegisterActivity extends AppCompatActivity {
                             }
                         });
                 handlerThread.quit();
+            });
+        } else {
+            if(firebaseKey == null) return;
+            var handlerThread = new HandlerThread(THREAD_NAME, Process.THREAD_PRIORITY_DEFAULT);
+            handlerThread.start();
+            var asyncHandler = new Handler(handlerThread.getLooper());
+            asyncHandler.post(() -> {
+                var future = FirebaseManager.getFromKey(firebaseKey);
+                try {
+                    var firebaseToDo = future.get();
+                    if(firebaseToDo != null) {
+                        runOnUiThread(() -> {
+                            binding.toDoEditText.setText(firebaseToDo.title);
+                            binding.subjectEditText.setText(firebaseToDo.subject);
+                            binding.editTextNumber.setText(String.valueOf(firebaseToDo.estimatedTime));
+                            binding.deadlineEditNumber.setText(firebaseToDo.deadline);
+                            if(firebaseToDo.priority == 0) {
+                                binding.radioLow.setChecked(true);
+                            } else if(firebaseToDo.priority == 1) {
+                                binding.radioMiddle.setChecked(true);
+                            } else if(firebaseToDo.priority == 2) {
+                                binding.radioHigh.setChecked(true);
+                            }
+                        });
+                    }
+                } catch (ExecutionException | InterruptedException ignored) {}
+                handlerThread.quitSafely();
             });
         }
     }
@@ -140,9 +175,11 @@ public class RegisterActivity extends AppCompatActivity {
                 CompletableFuture<String> future = null;
                 ToDo toDo;
                 if(id == -1) {
-                    // ToDoリストのデータを作成する
-                    toDo = new ToDo(true, content, subject, estimatedTime, deadline, priority, detail, true);
-                    if(binding.shareButton.isChecked()) future = FirebaseManager.sendTo(toDo);
+                    if(checkIsValidString(firebaseKey)) {
+                        toDo = new ToDo(firebaseKey, content, subject, estimatedTime, deadline, priority, detail, true);
+                    } else {
+                        toDo = new ToDo(true, content, subject, estimatedTime, deadline, priority, detail, true);
+                    }
                 } else {
                     // ToDoリストのデータを更新する
                     toDo = dao.get(id, isPersonal);
@@ -153,7 +190,9 @@ public class RegisterActivity extends AppCompatActivity {
                     toDo.detail = detail;
                     toDo.priority = toDo.toInt(priority);
                     toDo.visible = true;
-                    if(binding.shareButton.isChecked()) future = FirebaseManager.sendTo(toDo);
+                }
+                if(binding.shareButton.isChecked() && !checkIsValidString(toDo.firebaseKey)) {
+                    future = FirebaseManager.sendTo(toDo);
                 }
                 ToDo finalToDo = toDo;
                 Optional.ofNullable(future).ifPresentOrElse(f -> {
@@ -167,6 +206,7 @@ public class RegisterActivity extends AppCompatActivity {
                     }
                     handlerThread.quitSafely();
                     runOnUiThread(() -> {
+                        Toast.makeText(this, "登録しました", Toast.LENGTH_SHORT).show();
                         var intent = new Intent();
                         setResult(RESULT_OK, intent);
                         finish();
@@ -179,6 +219,7 @@ public class RegisterActivity extends AppCompatActivity {
                     }
                     handlerThread.quitSafely();
                     runOnUiThread(() -> {
+                        Toast.makeText(this, "登録しました", Toast.LENGTH_SHORT).show();
                         var intent = new Intent();
                         setResult(RESULT_OK, intent);
                         finish();
@@ -188,10 +229,25 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
-    private void initReturnButton() {
-        binding.returnButton.setOnClickListener(v -> {
+    private void initRevertButton() {
+        binding.revertButton.setOnClickListener(v -> {
             var intent = new Intent();
             setResult(RESULT_OK, intent);
+            finish();
+        });
+    }
+
+    private void initImportButton() {
+        if(checkIsValidString(firebaseKey)) {
+            binding.importButton.setVisibility(android.view.View.GONE);
+            binding.shareButton.setVisibility(android.view.View.GONE);
+        }
+        if(id != -1) {
+            binding.importButton.setVisibility(android.view.View.GONE);
+        }
+        binding.importButton.setOnClickListener(v -> {
+            var intent = new Intent(this, ImportActivity.class);
+            startActivity(intent);
             finish();
         });
     }

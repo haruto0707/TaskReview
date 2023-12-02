@@ -191,6 +191,9 @@ public class MainActivity extends AppCompatActivity {
             var intent = new Intent(this, RegisterActivity.class);
             intent.putExtra(KEY_TODO_ID, toDo.id);
             intent.putExtra(KEY_IS_PERSONAL, toDo.isPersonal);
+            if(ToDo.checkIsValidString(toDo.firebaseKey)) {
+                intent.putExtra(KEY_FIREBASE_KEY, toDo.firebaseKey);
+            }
             registerLauncher.launch(intent);
         };
 

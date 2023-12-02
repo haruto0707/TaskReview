@@ -39,7 +39,7 @@ public class ToDoViewHolder extends ViewHolder {
     /** ToDoの詳細画面を開くためのIntentを生成する関数インターフェース */
     private Function<ToDo, OnClickListener> openDetailIntent;
     private Function<ToDo, OnClickListener> openEvaluateIntent;
-    private boolean isSafeDelete = false;
+    private boolean hideButton = false;
 
     /**
      * ToDoリストの要素を生成する時のコンストラクタ<br>
@@ -49,13 +49,18 @@ public class ToDoViewHolder extends ViewHolder {
      */
     public ToDoViewHolder(@NonNull ViewTodoBinding binding, Function<ToDo, Runnable> hideToDo,
                           Function<ToDo, View.OnClickListener> openDetailIntent,
-                          Function<ToDo, View.OnClickListener> openEvaluateIntent) {
+                          Function<ToDo, View.OnClickListener> openEvaluateIntent,
+                          boolean hideButton) {
         this(binding.getRoot());
         this.binding = binding;
+        if(hideButton) {
+            this.hideButton = true;
+            binding.deleteButton.setVisibility(View.GONE);
+            binding.checkButton.setVisibility(View.GONE);
+        }
         this.hideToDo = hideToDo;
         this.openDetailIntent = openDetailIntent;
         this.openEvaluateIntent = openEvaluateIntent;
-        this.isSafeDelete = isSafeDelete;
         handlerThread = new HandlerThread(THREAD_NAME, Process.THREAD_PRIORITY_DEFAULT);
         handlerThread.start();
         asyncHandler = new Handler(handlerThread.getLooper());
@@ -85,12 +90,14 @@ public class ToDoViewHolder extends ViewHolder {
         binding.priorityView.setText(toDo.getPriorityString());
         binding.estimatedTimeView.setText(toDo.getStringTime(ToDo.TimeFormat.LABELED));
         binding.deadlineView.setText("期限 : " + toDo.deadline);
-        binding.deleteButton
-                .setOnClickListener(v -> asyncHandler.post(hideToDo.apply(toDo)));
-        binding.checkButton
-                .setOnClickListener(openEvaluateIntent.apply(toDo));
         binding.getRoot()
                 .setOnClickListener(openDetailIntent.apply(toDo));
+        if(!hideButton) {
+            binding.deleteButton
+                    .setOnClickListener(v -> asyncHandler.post(hideToDo.apply(toDo)));
+            binding.checkButton
+                    .setOnClickListener(openEvaluateIntent.apply(toDo));
+        }
     }
     /**
      * スレッドを終了するメソッド<br>

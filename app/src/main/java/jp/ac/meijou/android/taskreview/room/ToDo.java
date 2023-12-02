@@ -40,7 +40,7 @@ public class ToDo {
     public int estimatedTime;
     /** TODO画面で表示される優先度 */
     @ColumnInfo(name = "priority")
-    public int priority;
+    public double priority;
     /** 期限 */
     @ColumnInfo(name = "deadline")
     public String deadline;
@@ -92,6 +92,18 @@ public class ToDo {
         this.detail = detail;
         this.visible = visible;
         this.firebaseKey = MESSAGE_ERROR;
+    }
+
+    public ToDo(String firebaseKey, String title, String subject, int estimatedTime, String deadline, Priority priority, String detail, boolean visible) {
+        this.isPersonal = false;
+        this.firebaseKey = firebaseKey;
+        this.title = title;
+        this.subject = subject;
+        this.estimatedTime = estimatedTime;
+        this.deadline = deadline;
+        this.priority = toInt(priority);
+        this.detail = detail;
+        this.visible = visible;
     }
 
     public ToDo(int id, String title, String subject, int estimatedTime, String deadline, Priority priority, String firebaseKey, boolean visible) {
@@ -148,11 +160,9 @@ public class ToDo {
      * @return 優先度
      */
     public Priority getPriority() {
-        switch (priority) {
-            case 1: return Priority.MEDIUM;
-            case 2: return Priority.HIGH;
-            default: return Priority.LOW;
-        }
+        if(2.0 <= priority) return Priority.HIGH;
+        if(1.0 <= priority) return Priority.MEDIUM;
+        return Priority.LOW;
     }
 
     /**
@@ -160,11 +170,11 @@ public class ToDo {
      * @return 優先度を表す文字列
      */
     public String getPriorityString() {
-        switch (priority) {
-            case 0: return "LOW";
-            case 1: return "MEDIUM";
-            case 2: return "HIGH";
-            default: return "ERROR";
+        switch (getPriority()) {
+            case LOW: return "低";
+            case MEDIUM: return "中";
+            case HIGH: return "高";
+            default: return MESSAGE_ERROR;
         }
     }
 
@@ -197,11 +207,13 @@ public class ToDo {
         }
     }
 
-    public static Priority parsePriority(int priority) {
-        switch (priority) {
-            case 1: return Priority.MEDIUM;
-            case 2: return Priority.HIGH;
-            default: return Priority.LOW;
-        }
+    public static Priority parsePriority(double priority) {
+        if(2.0 <= priority) return Priority.HIGH;
+        if(1.0 <= priority) return Priority.MEDIUM;
+        return Priority.LOW;
+    }
+
+    public static boolean checkIsValidString(String str) {
+        return str != null && !str.isEmpty() && !str.equals(MESSAGE_ERROR);
     }
 }
