@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
@@ -82,38 +83,40 @@ public class ToDo {
      * @param detail 詳細
      * @param visible 表示フラグで{@code false}の場合はTODOリストに表示されない
      */
-    public ToDo(boolean isPersonal, String title, String subject, int estimatedTime, String deadline, Priority priority, String detail, boolean visible) {
+    @Ignore
+    public ToDo(boolean isPersonal, String title, String subject, int estimatedTime, String deadline, double priority, String detail, boolean visible) {
         this.isPersonal = isPersonal;
         this.title = title;
         this.subject = subject;
         this.estimatedTime = estimatedTime;
         this.deadline = deadline;
-        this.priority = toInt(priority);
+        this.priority = priority;
         this.detail = detail;
         this.visible = visible;
         this.firebaseKey = MESSAGE_ERROR;
     }
-
-    public ToDo(String firebaseKey, String title, String subject, int estimatedTime, String deadline, Priority priority, String detail, boolean visible) {
+    @Ignore
+    public ToDo(String firebaseKey, String title, String subject, int estimatedTime, String deadline, double priority, String detail, boolean visible) {
         this.isPersonal = false;
         this.firebaseKey = firebaseKey;
         this.title = title;
         this.subject = subject;
         this.estimatedTime = estimatedTime;
         this.deadline = deadline;
-        this.priority = toInt(priority);
+        this.priority = priority;
         this.detail = detail;
         this.visible = visible;
     }
 
-    public ToDo(int id, String title, String subject, int estimatedTime, String deadline, Priority priority, String firebaseKey, boolean visible) {
+    @Ignore
+    public ToDo(int id, String title, String subject, int estimatedTime, String deadline, double priority, String firebaseKey, boolean visible) {
         this.id = id;
         this.isPersonal = false;
         this.title = title;
         this.subject = subject;
         this.estimatedTime = estimatedTime;
         this.deadline = deadline;
-        this.priority = toInt(priority);
+        this.priority = priority;
         this.visible = visible;
         this.firebaseKey = firebaseKey;
     }
@@ -146,14 +149,7 @@ public class ToDo {
      * @param priority 優先度
      * @return int型の優先度
      */
-    public int toInt(Priority priority) {
-        switch (priority) {
-            case LOW: return 0;
-            case MEDIUM: return 1;
-            case HIGH: return 2;
-            default: return -1;
-        }
-    }
+
 
     /**
      * int型の優先度を{@link Priority}に変換する<br>

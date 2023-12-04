@@ -51,6 +51,7 @@ public class RegisterActivity extends AppCompatActivity {
     private int id;
     private boolean isPersonal;
     private String firebaseKey;
+    private double priority = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,6 +127,10 @@ public class RegisterActivity extends AppCompatActivity {
             });
         } else {
             if(firebaseKey == null) return;
+            binding.radioHigh.setEnabled(false);
+            binding.radioMiddle.setEnabled(false);
+            binding.radioLow.setEnabled(false);
+            binding.radioGroup.setAlpha(0.6f);
             var handlerThread = new HandlerThread(THREAD_NAME, Process.THREAD_PRIORITY_DEFAULT);
             handlerThread.start();
             var asyncHandler = new Handler(handlerThread.getLooper());
@@ -139,11 +144,12 @@ public class RegisterActivity extends AppCompatActivity {
                             binding.subjectEditText.setText(firebaseToDo.subject);
                             binding.editTextNumber.setText(String.valueOf(firebaseToDo.getStringTime(ToDo.TimeFormat.DEFAULT)));
                             binding.deadlineEditNumber.setText(firebaseToDo.deadline);
-                            if(firebaseToDo.priority == 0) {
-                                binding.radioLow.setChecked(true);
-                            } else if(firebaseToDo.priority == 1) {
+                            priority = firebaseToDo.priority;
+                            if(2 < priority) {
+                                binding.radioHigh.setChecked(true);
+                            } else if(1 < priority) {
                                 binding.radioMiddle.setChecked(true);
-                            } else if(firebaseToDo.priority == 2) {
+                            } else {
                                 binding.radioHigh.setChecked(true);
                             }
                         });
@@ -177,7 +183,7 @@ public class RegisterActivity extends AppCompatActivity {
             var estimatedTime = timeToInt(binding.editTextNumber.getText().toString());
             var deadline = binding.deadlineEditNumber.getText().toString();
             var detail = binding.detailEditText.getText().toString();
-            var priority = getPriority();
+            var priority = getPriority(this.priority);
             // DBアクセス用スレッド内でデータベースにデータを挿入する
             asyncHandler.post(() -> {
                 CompletableFuture<String> future = null;
@@ -185,6 +191,7 @@ public class RegisterActivity extends AppCompatActivity {
                 if(id == -1) {
                     if(checkIsValidString(firebaseKey)) {
                         toDo = new ToDo(firebaseKey, content, subject, estimatedTime, deadline, priority, detail, true);
+
                     } else {
                         toDo = new ToDo(true, content, subject, estimatedTime, deadline, priority, detail, true);
                     }
@@ -196,7 +203,7 @@ public class RegisterActivity extends AppCompatActivity {
                     toDo.estimatedTime = estimatedTime;
                     toDo.deadline = deadline;
                     toDo.detail = detail;
-                    toDo.priority = toDo.toInt(priority);
+                    toDo.priority = getPriority(priority);
                     toDo.visible = true;
                 }
                 if(binding.shareButton.isChecked() && !checkIsValidString(toDo.firebaseKey)) {
@@ -249,7 +256,9 @@ public class RegisterActivity extends AppCompatActivity {
         if(checkIsValidString(firebaseKey)) {
             binding.importButton.setVisibility(android.view.View.GONE);
             binding.shareButton.setVisibility(android.view.View.GONE);
-
+            binding.facultySpinner.setVisibility(android.view.View.GONE);
+            binding.departmentSpinner.setVisibility(android.view.View.GONE);
+            binding.subjectSpinner.setVisibility(android.view.View.GONE);
         }
         if(id != -1) {
             binding.importButton.setVisibility(android.view.View.GONE);
@@ -323,19 +332,20 @@ public class RegisterActivity extends AppCompatActivity {
         return newList;
     }
 
-
-    /**
-     * ラジオボタンの選択状態から、優先度を取得するメソッド
-     */
-    private ToDo.Priority getPriority() {
-        if (binding.radioLow.isChecked()) {
-            return ToDo.Priority.LOW;
-        } else if (binding.radioMiddle.isChecked()) {
-            return ToDo.Priority.MEDIUM;
-        } else if (binding.radioHigh.isChecked()) {
-            return ToDo.Priority.HIGH;
+    private double getPriority(double priority)
+    {
+        if(Double.compare(priority, this.priority) == 1) {
+            if(binding.radioLow.isChecked()) {
+                return 0;
+            } else if(binding.radioMiddle.isChecked()) {
+                return 1;
+            } else if(binding.radioHigh.isChecked()) {
+                return 2;
+            } else {
+                return 0;
+            }
         }
-        return ToDo.Priority.LOW;
+        return priority < 0 ? 0 : priority;
     }
 
     private void hideKeyboard() {

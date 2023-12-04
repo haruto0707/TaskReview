@@ -110,7 +110,7 @@ public class FirebaseManager {
 
         return new ToDo(key, firebaseToDo.title, firebaseToDo.subject,
                 firebaseToDo.estimatedTime, firebaseToDo.deadline,
-                parsePriority(firebaseToDo.priority), "", true);
+                firebaseToDo.priority, "", true);
     }
 
 

@@ -207,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
                     .ofNullable(toDo.firebaseKey)
                     .filter(s -> !s.isEmpty())
                     .orElse("ERROR"));
+            intent.putExtra(KEY_TODO_ID, toDo.id);
             asyncHandler.post(() -> {
                 toDo.visible = false;
                 dao.update(toDo);

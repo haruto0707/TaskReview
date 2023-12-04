@@ -35,6 +35,7 @@ public class EvaluateActivity extends AppCompatActivity {
         isPersonal = getIntent().getBooleanExtra(MainActivity.KEY_IS_PERSONAL, true);
         binding.toDoFinishButton.setChecked(true);
         binding.evaluateFinishButton.setOnClickListener(v -> {
+            var id = getIntent().getIntExtra(MainActivity.KEY_TODO_ID, -1);
             if(!isPersonal) {
                 var firebaseKey = getIntent().getStringExtra(MainActivity.KEY_FIREBASE_KEY);
                 var isFinished = binding.toDoFinishButton.isChecked();
@@ -42,7 +43,21 @@ public class EvaluateActivity extends AppCompatActivity {
                 // 送信系の処理は以下に記述
                 CompletableFuture<Void> future = FirebaseManager.sendTo(
                         new ToDoEvaluation(firebaseKey, isFinished, evaluation));
-                future.thenRun(() -> {
+                future.thenRunAsync(() -> {
+                    var db = ToDoDatabase.getInstance(this);
+                    var dao = db.toDoDao();
+                    dao.delete(id);
+                }).thenRunAsync(() -> {
+                        var intent = new Intent();
+                        setResult(RESULT_OK, intent);
+                        finish();
+                });
+            } else {
+                CompletableFuture.runAsync(() -> {
+                    var db = ToDoDatabase.getInstance(this);
+                    var dao = db.toDoDao();
+                    dao.delete(id);
+                }).thenRunAsync(() -> {
                     var intent = new Intent();
                     setResult(RESULT_OK, intent);
                     finish();
