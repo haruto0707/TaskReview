@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "657117939958",
+    "firebase_url": "https://taskview-f65fb-default-rtdb.firebaseio.com",
+    "project_id": "taskview-f65fb",
+    "storage_bucket": "taskview-f65fb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:657117939958:android:d18b7fea9f7859007cc4d7",
+        "android_client_info": {
+          "package_name": "jp.ac.meijou.android.taskreview"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATmrURlCUprj1VAs6DKiXaphylqlM2aS4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

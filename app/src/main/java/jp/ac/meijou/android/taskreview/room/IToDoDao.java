@@ -23,7 +23,7 @@ import java.util.List;
  *    dao = db.toDoDao();
  *    asyncHandler.post(() -> {
  *        //DBの操作を行う
- *        var to_Do = new ToDo("やること", "科目", "推定時間", "期限", Priority, "詳細", "メモ", 表示フラグ);
+ *        var to_Do = new ToDo(isPersonal, "やること", "科目", "推定時間", "期限", Priority, "詳細", 表示フラグ);
  *        dao.insert(to_Do);
  *        // 必要に応じてスレッドを終了する。onDestroy内で行ってもよい。
  *        handlerThread.quit();
@@ -45,13 +45,23 @@ public interface IToDoDao {
      */
     @Query("SELECT * FROM todo_list WHERE visible = :visible")
     List<ToDo> getVisibilityAll(boolean visible);
+
+    @Query("SELECT * FROM todo_list WHERE visible = :visible ORDER BY priority DESC")
+    List<ToDo> getPrioritySorted(boolean visible);
+
+    @Query("SELECT * FROM todo_list WHERE visible = :visible ORDER BY deadline ASC")
+    List<ToDo> getDeadlineSorted(boolean visible);
     /**
      * DBに格納されているデータの内、{@code id}と一致するデータを取得する
      * @param id 取得するデータのID
+     * @param isPersonal 取得するデータが個人で作成されたものであるかどうか
      * @return DBに格納されているデータの内、{@code id}と一致するデータ
      */
-    @Query("SELECT * FROM todo_list WHERE id = :id")
-    ToDo get(int id);
+    @Query("SELECT * FROM todo_list WHERE id = :id AND is_personal = :isPersonal")
+    ToDo get(int id, boolean isPersonal);
+
+    @Query("SELECT * FROM todo_list WHERE firebase_key = :firebaseKey")
+    ToDo get(String firebaseKey);
     /**
      * DBにデータを追加する
      * @param todo 追加するデータ

@@ -4,26 +4,32 @@ import android.annotation.SuppressLint;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
-import androidx.room.Insert;
+import androidx.room.Ignore;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-import java.util.Optional;
+import java.util.Objects;
+
 
 /**
  * RoomによるDBのデータを格納するクラスの定義<br>
  * データ操作を行う場合は{@link jp.ac.meijou.android.taskreview.room.IToDoDao}を通じて行う。<br>
  * tableNameはデータベースのテーブル名を指定する。
  */
-@Entity(tableName = "todo_list")
+@Entity(tableName = "todo_list", indices = {@Index(value = {"id", "is_personal"}, unique = true)})
 public class ToDo {
     /** エラーメッセージ */
     public static final String MESSAGE_ERROR = "ERROR";
     public static final String TIME_FORMAT_DEFAULT = "%02d:%02d";
     public static final String TIME_FORMAT_LABELED = "%02d時間%02d分";
     public static final String DATE_FORMAT = "%d-%02d-%02d";
+
     /** IDは主キーで自動生成 */
     @PrimaryKey(autoGenerate = true)
     public int id;
+    /** 個人で設定したTODOであるかどうか */
+    @ColumnInfo(name = "is_personal")
+    public boolean isPersonal;
     /** やることリストでTODO画面で上側に表示される文字 */
     @ColumnInfo(name = "title")
     public String title;
@@ -35,19 +41,19 @@ public class ToDo {
     public int estimatedTime;
     /** TODO画面で表示される優先度 */
     @ColumnInfo(name = "priority")
-    public int priority;
+    public double priority;
     /** 期限 */
     @ColumnInfo(name = "deadline")
     public String deadline;
     /** 詳細 */
     @ColumnInfo(name = "detail")
     public String detail;
-    /** メモ */
-    @ColumnInfo(name = "note")
-    public String note;
     /** 表示フラグで{@code false}の場合はTODOリストに表示されない */
     @ColumnInfo(name = "visible")
     public boolean visible;
+
+    @ColumnInfo(name = "firebase_key")
+    public String firebaseKey;
 
     /**
      * デフォルトコンストラクタ<br>
@@ -62,8 +68,9 @@ public class ToDo {
         this.deadline = MESSAGE_ERROR;
         this.priority = -1;
         this.detail = MESSAGE_ERROR;
-        this.note = MESSAGE_ERROR;
+        this.isPersonal = true;
         this.visible = false;
+        this.firebaseKey = MESSAGE_ERROR;
     }
 
     /**
@@ -74,18 +81,44 @@ public class ToDo {
      * @param deadline 期限
      * @param priority 優先度
      * @param detail 詳細
-     * @param note メモ
      * @param visible 表示フラグで{@code false}の場合はTODOリストに表示されない
      */
-    public ToDo(String title, String subject, int estimatedTime, String deadline, Priority priority, String detail, String note, boolean visible) {
+    @Ignore
+    public ToDo(boolean isPersonal, String title, String subject, int estimatedTime, String deadline, double priority, String detail, boolean visible) {
+        this.isPersonal = isPersonal;
         this.title = title;
         this.subject = subject;
         this.estimatedTime = estimatedTime;
         this.deadline = deadline;
-        this.priority = toInt(priority);
+        this.priority = priority;
         this.detail = detail;
-        this.note = note;
         this.visible = visible;
+        this.firebaseKey = MESSAGE_ERROR;
+    }
+    @Ignore
+    public ToDo(String firebaseKey, String title, String subject, int estimatedTime, String deadline, double priority, String detail, boolean visible) {
+        this.isPersonal = false;
+        this.firebaseKey = firebaseKey;
+        this.title = title;
+        this.subject = subject;
+        this.estimatedTime = estimatedTime;
+        this.deadline = deadline;
+        this.priority = priority;
+        this.detail = detail;
+        this.visible = visible;
+    }
+
+    @Ignore
+    public ToDo(int id, String title, String subject, int estimatedTime, String deadline, double priority, String firebaseKey, boolean visible) {
+        this.id = id;
+        this.isPersonal = false;
+        this.title = title;
+        this.subject = subject;
+        this.estimatedTime = estimatedTime;
+        this.deadline = deadline;
+        this.priority = priority;
+        this.visible = visible;
+        this.firebaseKey = firebaseKey;
     }
 
     /**
@@ -116,25 +149,16 @@ public class ToDo {
      * @param priority 優先度
      * @return int型の優先度
      */
-    public int toInt(Priority priority) {
-        switch (priority) {
-            case LOW: return 0;
-            case MEDIUM: return 1;
-            case HIGH: return 2;
-            default: return -1;
-        }
-    }
+
 
     /**
      * int型の優先度を{@link Priority}に変換する<br>
      * @return 優先度
      */
     public Priority getPriority() {
-        switch (priority) {
-            case 1: return Priority.MEDIUM;
-            case 2: return Priority.HIGH;
-            default: return Priority.LOW;
-        }
+        if(2.0 <= priority) return Priority.HIGH;
+        if(1.0 <= priority) return Priority.MEDIUM;
+        return Priority.LOW;
     }
 
     /**
@@ -142,11 +166,11 @@ public class ToDo {
      * @return 優先度を表す文字列
      */
     public String getPriorityString() {
-        switch (priority) {
-            case 0: return "LOW";
-            case 1: return "MEDIUM";
-            case 2: return "HIGH";
-            default: return "ERROR";
+        switch (getPriority()) {
+            case LOW: return "低";
+            case MEDIUM: return "中";
+            case HIGH: return "高";
+            default: return MESSAGE_ERROR;
         }
     }
 
@@ -158,10 +182,10 @@ public class ToDo {
     public String getStringTime(TimeFormat format) {
         var hour = estimatedTime / 60;
         var minute = estimatedTime % 60;
-        switch(format) {
-            case LABELED: return String.format(TIME_FORMAT_LABELED, hour, minute);
-            default: return String.format(TIME_FORMAT_DEFAULT, hour, minute);
+        if (Objects.requireNonNull(format) == TimeFormat.LABELED) {
+            return String.format(TIME_FORMAT_LABELED, hour, minute);
         }
+        return String.format(TIME_FORMAT_DEFAULT, hour, minute);
     }
 
     /**
@@ -177,5 +201,15 @@ public class ToDo {
             case 2: return Integer.parseInt(dateTime[0]) * 60 + Integer.parseInt(dateTime[1]);
             default: return -1;  // エラーの場合は-1を返す
         }
+    }
+
+    public static Priority parsePriority(double priority) {
+        if(2.0 <= priority) return Priority.HIGH;
+        if(1.0 <= priority) return Priority.MEDIUM;
+        return Priority.LOW;
+    }
+
+    public static boolean checkIsValidString(String str) {
+        return str != null && !str.isEmpty() && !str.equals(MESSAGE_ERROR);
     }
 }

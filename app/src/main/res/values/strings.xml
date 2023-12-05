@@ -10,4 +10,18 @@
     <string name="title_priority_high">高</string>
     <string name="title_deadline">期限</string>
     <string name="title_detail">詳細</string>
+    <string name="text_finish">タスク完了</string>
+    <string name="text_not_finish">タスク未完了</string>
+    <string name="title_evaluation">自己評価</string>
+    <string name="title_comment">コメント</string>
+    <string name="title_sortSetting">並び順</string>
+    <string name="faculty">学部を選択</string>
+    <string name="department">学科を選択</string>
+    <string name="subject">科目を選択</string>
+    <string-array name="sortSettingItems">
+        <item>優先度順</item>
+        <item>期限順</item>
+        <item>科目順</item>
+        <item>オート</item>
+    </string-array>
 </resources>

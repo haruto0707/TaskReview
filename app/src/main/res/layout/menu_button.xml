@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:id="@+id/menuButtonElement"
+    android:clickable="false"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <Button
         android:id="@+id/todoButton"
         android:layout_width="203dp"
         android:layout_height="80dp"
+        android:background="@drawable/ic_launcher_background"
         android:text="TODO"
         android:textSize="20sp"
-        android:background="@drawable/ic_launcher_background"
-        android:layout_marginBottom="2dp"
+        app:layout_constraintEnd_toStartOf="@+id/historyButton"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/registerButton"
-        app:layout_constraintBottom_toBottomOf="parent"
-        />
+        tools:layout_editor_absoluteY="0dp" />
 
     <Button
-        android:id="@+id/registerButton"
+        android:id="@+id/historyButton"
         android:layout_width="203dp"
         android:layout_height="80dp"
-        android:text="登録"
-        android:textSize="20sp"
         android:background="@drawable/ic_launcher_background"
+        android:text="履歴"
+        android:textSize="20sp"
+        app:layout_constraintStart_toEndOf="@+id/todoButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/todoButton"
-        app:layout_constraintTop_toTopOf="@id/todoButton" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

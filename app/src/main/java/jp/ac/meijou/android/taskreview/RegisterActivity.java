@@ -1,12 +1,15 @@
 package jp.ac.meijou.android.taskreview;
 
-import static androidx.core.content.ContentProviderCompat.requireContext;
+
+import static jp.ac.meijou.android.taskreview.room.ToDo.MESSAGE_ERROR;
+import static jp.ac.meijou.android.taskreview.room.ToDo.checkIsValidString;
 import static jp.ac.meijou.android.taskreview.room.ToDo.timeToInt;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
-import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,18 +17,22 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Process;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.DatePicker;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
+import android.widget.Toast;
 
-import java.util.Calendar;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import jp.ac.meijou.android.taskreview.databinding.ActivityRegisterBinding;
+import jp.ac.meijou.android.taskreview.firebase.FirebaseManager;
+import jp.ac.meijou.android.taskreview.firebase.FirebaseToDo;
 import jp.ac.meijou.android.taskreview.room.ToDo;
 import jp.ac.meijou.android.taskreview.room.ToDo.Priority;
 import jp.ac.meijou.android.taskreview.room.ToDoDatabase;
@@ -42,15 +49,23 @@ public class RegisterActivity extends AppCompatActivity {
      * ToDoリストのID
      */
     private int id;
+    private boolean isPersonal;
+    private String firebaseKey;
+    private double priority = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityRegisterBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         initView();
-        initButton();
+        initRegisterButton();
+        initRevertButton();
+        initImportButton();
+        initFacultySpinner();
+        initDepartmentSpinner(MESSAGE_ERROR);
+        initSubjectSpinner(MESSAGE_ERROR, MESSAGE_ERROR);
     }
-
     /**
      * ToDoリストのデータからTextViewに文字列をセットするメソッド
      */
@@ -80,11 +95,12 @@ public class RegisterActivity extends AppCompatActivity {
      */
     private void initViewText() {
         id = getIntent().getIntExtra(MainActivity.KEY_TODO_ID, -1);
+        firebaseKey = getIntent().getStringExtra(MainActivity.KEY_FIREBASE_KEY);
+        isPersonal = getIntent().getBooleanExtra(MainActivity.KEY_IS_PERSONAL, true);
         if(id != -1) {
             // DBアクセス用のDAOを初期化する、データベース内のデータを取得
             var db = ToDoDatabase.getInstance(this);
             var dao = db.toDoDao();
-
             // DBアクセス用のスレッドを初期化、開始する
             var handlerThread = new HandlerThread(THREAD_NAME, Process.THREAD_PRIORITY_DEFAULT);
             handlerThread.start();
@@ -92,7 +108,7 @@ public class RegisterActivity extends AppCompatActivity {
 
             //  ToDoをDBからデータを取得し、画面に表示する
             asyncHandler.post(() -> {
-                Optional.ofNullable(dao.get(id))
+                Optional.ofNullable(dao.get(id, isPersonal))
                         .ifPresent(toDo -> {
                             binding.toDoEditText.setText(toDo.title);
                             binding.subjectEditText.setText(toDo.subject);
@@ -109,6 +125,38 @@ public class RegisterActivity extends AppCompatActivity {
                         });
                 handlerThread.quit();
             });
+        } else {
+            if(firebaseKey == null) return;
+            binding.radioHigh.setEnabled(false);
+            binding.radioMiddle.setEnabled(false);
+            binding.radioLow.setEnabled(false);
+            binding.radioGroup.setAlpha(0.6f);
+            var handlerThread = new HandlerThread(THREAD_NAME, Process.THREAD_PRIORITY_DEFAULT);
+            handlerThread.start();
+            var asyncHandler = new Handler(handlerThread.getLooper());
+            asyncHandler.post(() -> {
+                var future = FirebaseManager.getFromKey(firebaseKey);
+                try {
+                    var firebaseToDo = future.get();
+                    if(firebaseToDo != null) {
+                        runOnUiThread(() -> {
+                            binding.toDoEditText.setText(firebaseToDo.title);
+                            binding.subjectEditText.setText(firebaseToDo.subject);
+                            binding.editTextNumber.setText(String.valueOf(firebaseToDo.getStringTime(ToDo.TimeFormat.DEFAULT)));
+                            binding.deadlineEditNumber.setText(firebaseToDo.deadline);
+                            priority = firebaseToDo.priority;
+                            if(2 < priority) {
+                                binding.radioHigh.setChecked(true);
+                            } else if(1 < priority) {
+                                binding.radioMiddle.setChecked(true);
+                            } else {
+                                binding.radioHigh.setChecked(true);
+                            }
+                        });
+                    }
+                } catch (ExecutionException | InterruptedException ignored) {}
+                handlerThread.quitSafely();
+            });
         }
     }
 
@@ -117,11 +165,11 @@ public class RegisterActivity extends AppCompatActivity {
      * {@code registerButton} ボタンを押した際に、データベースにデータを登録する<br>
      * {@code todoButton} メニュー画面に戻るボタンを押した際に、メニュー画面に戻る<br>
      */
-    private void initButton() {
+    private void initRegisterButton() {
+        binding.registerButton.setText(id == -1 ? "登録" : "更新");
         // DBアクセス用のDAOを初期化する、データベース内のデータを取得
         var db = ToDoDatabase.getInstance(this);
         var dao = db.toDoDao();
-
         // 登録ボタン
         binding.registerButton.setOnClickListener(v -> {
             // DBアクセス用のスレッドを初期化、開始する
@@ -135,51 +183,169 @@ public class RegisterActivity extends AppCompatActivity {
             var estimatedTime = timeToInt(binding.editTextNumber.getText().toString());
             var deadline = binding.deadlineEditNumber.getText().toString();
             var detail = binding.detailEditText.getText().toString();
-            var priority = getPriority();
+            var priority = getPriority(this.priority);
             // DBアクセス用スレッド内でデータベースにデータを挿入する
             asyncHandler.post(() -> {
+                CompletableFuture<String> future = null;
+                ToDo toDo;
                 if(id == -1) {
-                    // ToDoリストのデータを作成する
-                    var toDo = new ToDo(content, subject, estimatedTime, "2021-07-01", priority, detail, "note", true);
-                    dao.insert(toDo);
+                    if(checkIsValidString(firebaseKey)) {
+                        toDo = new ToDo(firebaseKey, content, subject, estimatedTime, deadline, priority, detail, true);
+
+                    } else {
+                        toDo = new ToDo(true, content, subject, estimatedTime, deadline, priority, detail, true);
+                    }
                 } else {
                     // ToDoリストのデータを更新する
-                    var toDo = dao.get(id);
+                    toDo = dao.get(id, isPersonal);
                     toDo.title = content;
                     toDo.subject = subject;
                     toDo.estimatedTime = estimatedTime;
                     toDo.deadline = deadline;
                     toDo.detail = detail;
-                    toDo.priority = toDo.toInt(priority);
-                    dao.update(toDo);
+                    toDo.priority = getPriority(priority);
+                    toDo.visible = true;
                 }
-                // DBアクセス用スレッドを終了する
-                handlerThread.quit();
+                if(binding.shareButton.isChecked() && !checkIsValidString(toDo.firebaseKey)) {
+                    future = FirebaseManager.sendTo(toDo);
+                }
+                ToDo finalToDo = toDo;
+                Optional.ofNullable(future).ifPresentOrElse(f -> {
+                    try {
+                        finalToDo.firebaseKey = f.get();
+                    } catch (ExecutionException | InterruptedException ignored) {}
+                    if(id == -1) {
+                        dao.insert(finalToDo);
+                    } else {
+                        dao.update(finalToDo);
+                    }
+                    handlerThread.quitSafely();
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "登録しました", Toast.LENGTH_SHORT).show();
+                        var intent = new Intent();
+                        setResult(RESULT_OK, intent);
+                        finish();
+                    });
+                }, () -> {
+                    if(id == -1) {
+                        dao.insert(toDo);
+                    } else {
+                        dao.update(toDo);
+                    }
+                    handlerThread.quitSafely();
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "登録しました", Toast.LENGTH_SHORT).show();
+                        var intent = new Intent();
+                        setResult(RESULT_OK, intent);
+                        finish();
+                    });
+                });
             });
         });
+    }
 
-        // メニュー画面に戻るボタン
-        binding.menu.todoButton.setOnClickListener(v -> {
+    private void initRevertButton() {
+        binding.revertButton.setOnClickListener(v -> {
             var intent = new Intent();
-            // メニュー画面に戻るボタンを押した際に、resultLauncherのメソッドを呼び出す
             setResult(RESULT_OK, intent);
             finish();
         });
     }
 
-
-    /**
-     * ラジオボタンの選択状態から、優先度を取得するメソッド
-     */
-    private ToDo.Priority getPriority() {
-        if (binding.radioLow.isChecked()) {
-            return ToDo.Priority.LOW;
-        } else if (binding.radioMiddle.isChecked()) {
-            return ToDo.Priority.MEDIUM;
-        } else if (binding.radioHigh.isChecked()) {
-            return ToDo.Priority.HIGH;
+    private void initImportButton() {
+        if(checkIsValidString(firebaseKey)) {
+            binding.importButton.setVisibility(android.view.View.GONE);
+            binding.shareButton.setVisibility(android.view.View.GONE);
+            binding.facultySpinner.setVisibility(android.view.View.GONE);
+            binding.departmentSpinner.setVisibility(android.view.View.GONE);
+            binding.subjectSpinner.setVisibility(android.view.View.GONE);
         }
-        return ToDo.Priority.LOW;
+        if(id != -1) {
+            binding.importButton.setVisibility(android.view.View.GONE);
+        }
+        binding.importButton.setOnClickListener(v -> {
+            var intent = new Intent(this, ImportActivity.class);
+            startActivity(intent);
+            finish();
+        });
+    }
+
+    private void initFacultySpinner() {
+        initSpinner(binding.facultySpinner, "学部を選択", false);
+        // 選択が変更されたら学科を取得する
+        binding.facultySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
+                if(position == 0) return;
+                var faculty = parent.getItemAtPosition(position).toString();
+                FirebaseManager.getKeyFromName(faculty)
+                        .thenAccept(key -> initDepartmentSpinner(key));
+            }
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
+    }
+
+    private void initDepartmentSpinner(String faculty) {
+        initSpinner(binding.departmentSpinner, "学科を選択", false, faculty);
+        binding.departmentSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
+                if(position == 0) return;
+                var department = parent.getItemAtPosition(position).toString();
+                FirebaseManager.getKeyFromName(department, faculty)
+                        .thenAccept(key -> initSubjectSpinner(faculty, key));
+            }
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
+    }
+
+    private void initSubjectSpinner(String faculty, String department) {
+        initSpinner(binding.subjectSpinner, "科目を選択", true, faculty, department);
+        binding.subjectSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
+                if(position == 0) return;
+                var subject = parent.getItemAtPosition(position).toString();
+                binding.subjectEditText.setText(subject);
+            }
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
+    }
+
+    private void initSpinner(Spinner spinner, String defaultValue, boolean isSubject, String... keys) {
+        var adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapter.add(defaultValue);
+        FirebaseManager.getSubject(isSubject, keys).thenAccept(s -> adapter.addAll(sortElements(s)));
+        spinner.setAdapter(adapter);
+    }
+
+    private List<String> sortElements(List<String> list) {
+        List<String> newList = new ArrayList<>(list);
+        if(newList.contains("その他")) {
+            newList.remove("その他");
+            newList.add("その他");
+        }
+        return newList;
+    }
+
+    private double getPriority(double priority)
+    {
+        if(Double.compare(priority, this.priority) == 1) {
+            if(binding.radioLow.isChecked()) {
+                return 0;
+            } else if(binding.radioMiddle.isChecked()) {
+                return 1;
+            } else if(binding.radioHigh.isChecked()) {
+                return 2;
+            } else {
+                return 0;
+            }
+        }
+        return priority < 0 ? 0 : priority;
     }
 
     private void hideKeyboard() {
